@@ -24,8 +24,8 @@ from openpyxl.styles import Alignment
 
 
 """ 
-0) Add on Returns: to various methods I forgot to do to.
-1) Get rid of calls to constants like DAY, replace with library:
+1) Add on Returns: to various methods I forgot to do to.
+2) Get rid of calls to constants like DAY, replace with library:
     -MONTHS
     -DAYS
     -Letters for version: alphabet
