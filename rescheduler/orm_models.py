@@ -3,11 +3,9 @@ import calendar
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy import Column, Date, Integer, String, Time, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import sessionmaker, relationship, backref
 
-engine = create_engine('sqlite:///test30.db', echo=False)
 Base = declarative_base()
-
 
 class DB_Schedule(Base):
     
@@ -29,22 +27,24 @@ class DB_Schedule(Base):
                          nullable = True)
     employee = relationship('Employees')
     
-    def __init__(self, cal_date, sch_date, start_datetime, end_datetime, 
-                 s_undetermined, e_undetermined, department):
-        
-        
-        self.calendar_date = cal_date
-        self.schedule_date = sch_date
-        self.start_datetime = start_datetime
-        self.end_datetime = end_datetime
+    def __init__(self, start_dt, end_dt, s_undetermined, e_undetermined, 
+                 department):
+
+        self.start_datetime = start_dt
+        self.end_datetime = end_dt
         self.department = department
         self.s_undetermined_time = s_undetermined
         self.e_undetermined_time = e_undetermined
         
         # Using the start and end datetime objects, create correspoding start
         # and end time objects for comparison with time objects
-        self.start_time = datetime.time(start_datetime.hour, start_datetime.minute)
-        self.end_time = datetime.time(end_datetime.hour, end_datetime.minute)
+        self.start_time = datetime.time(start_dt.hour, start_dt.minute)
+        self.end_time = datetime.time(end_dt.hour, end_dt.minute)
+        # Create cal_date for calendar month and year comparisons and sch_date
+        # for date comparisons
+        self.calendar_date = datetime.date(start_dt.year, start_dt.month, 1)
+        self.schedule_date = datetime.date(start_dt.year, start_dt.month,
+                                           start_dt.day)
         
         
     def cost(self):
@@ -205,12 +205,15 @@ class Employees(Base):
         for s in same_day_unav:
             if db_schedule.start_time < s.end_time and s.start_time < db_schedule.end_time:
                 return '(U)'
-        if self.calculate_hours() > self.overtime:
+        if self.calculate_weekly_hours(db_schedule) > self.overtime:
             return '(O)'
         return '(A)'
         
     # Adds up all the hours scheduled for this employee
-    def calculate_hours(self):
+    # Find a way to filter all schedules for this employee filtered to same
+    # week as the supplied schedule, then calculate the summed time delta of 
+    # all the 
+    def calculate_weekly_hours(self, schedule):
         return 0
     
     # Calculate cost to employ employee for that month's calendar
@@ -248,4 +251,25 @@ class Department(Base):
         self.name = department
 
         
-Base.metadata.create_all(engine)
+def start_db(db_name, test=False):
+    db = 'sqlite:///' + db_name + '.db'
+    if test:
+        db = 'sqlite:///' + db_name + 'test.db'
+
+    engine = create_engine(db, echo=False)
+    Base.metadata.create_all(engine)
+    
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    # Case where user starts program, but no departments in database
+    departments = session.query(Department).all()
+    if departments == [] and not test:
+        dep_list = ["Front", "Office", "Designers", "Facilities", "Drivers"]
+        for d in dep_list:
+            dep = Department(d)
+            session.add(dep)
+        session.commit()
+
+        
+    return session

@@ -221,7 +221,6 @@ class DepartmentList(tk.Frame):
         
         
         self.department_listbox = tk.Listbox(self, 
-                                             #exportselection=0, 
                                              height=6, width=25, 
                                              font=('Tahoma', 14, tk.NORMAL))
         self.department_listbox.grid(row=11, column=0, 
@@ -260,6 +259,7 @@ class DepartmentList(tk.Frame):
         
         self.department_listbox.insert(tk.END, self.dep_name.get())
         self.cal.dep_list.append(self.dep_name.get())
+        
         
     def remove_department(self):
         if self.department_listbox.curselection() == ():
@@ -438,7 +438,7 @@ class EmployeeInfoForm(tk.Frame):
             self.l_name_var.set("")
             self.e_id.set(0)
             self.e_wage.set("7.5")
-            self.d_hours.set("40")
+            self.d_hours.set("48")
             self.dep1.set("None")
             self.dep2.set("None")
             self.dep3.set("None")
@@ -545,12 +545,12 @@ class EmployeeInfoForm(tk.Frame):
         self.f_name_var.set("New Employee")
         self.l_name_var.set("")
         self.e_id.set(0)
-        self.e_wage.set("7.5")
+        self.e_wage.set("9.5")
         self.d_hours.set("40")
         self.dep1.set("None")
         self.dep2.set("None")
         self.dep3.set("None")
-        self.ovrt_var.set("40")
+        self.ovrt_var.set("48")
         self.work_comp_var.set("50")
         self.soc_sec_var.set("7.5")
         self.medical_var.set("0")
@@ -748,7 +748,6 @@ class EmployeeVacations(tk.Frame):
          
         
     def load_vacations(self, employee):
-    
         """Load past and future vacations associated with employee. """
         # Delete any previously displayed vacations for different employee
         self.future_v_lb.delete(0, tk.END)
@@ -844,7 +843,7 @@ class EmployeeVacations(tk.Frame):
             
             # else display error box containing a 
             # printed list of all conflicing schedules. 
-            #	give option for user to delete 
+            # give option for user to delete 
             # conflicting schedules to add vacation day?
     	
         
@@ -874,13 +873,6 @@ class EmployeeVacations(tk.Frame):
         
         del self.past_vacations[index]
     
-        #self.schedule_editor.schedule_widgets.remove(self)
-        #self.session.delete(self.db_schedule)
-        #self.session.commit()
-        # This should be easy. Since if we remove 
-        # an absent schedule there really is no conflict
-        # Should still have a pop-up box to make 
-        # sure the user wans to remove the schedule
         
         
         

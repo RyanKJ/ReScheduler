@@ -91,6 +91,7 @@ class TimeEntry(tk.Frame):
                                         state='readonly')
         self.meridiem_cb.pack(side=tk.LEFT)
         
+        
     def get(self):
         return self.hour_var.get(), self.min_var.get(), self.meridiem_var.get()
         

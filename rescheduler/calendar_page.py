@@ -24,14 +24,21 @@ from openpyxl.styles import Alignment
 
 
 """ 
-1) Add on Returns: to various methods I forgot to do to.
-2) Get rid of calls to constants like DAY, replace with library:
+1) Fix issue with total sum not summing
+2) Fix issue with different month getting same value as current month
+3) Add session arg into comments for relevant classes
+4) Make optionmenu items responsive to department database
+5) Make other database tables use departments
+6) Get rid of calls to constants like DAY, replace with library:
     -MONTHS
     -DAYS
     -Letters for version: alphabet
 
-Rescheduler Alpha
 
+    
+    
+    
+Rescheduler Alpha
 
 http://stackoverflow.com/questions/13242970/tkinter-entry-box-formatted-for-date/13243973
 http://stackoverflow.com/users/1795505/pydsigner
@@ -52,21 +59,20 @@ Pythonisize Code:
     -Check import style guides and make pythonic
     -Make sure conditionals are pythonic: 
         Save method test should have better type checking idioms
-    -Perhaps redo add/save processing in employee_page: seems messy
     -Perhaps simplify deleting methods
     -Inherit from object for classes? Inherit tk.Frame, etc.
-2) Some core testing: get_eligability
-3) Fix autofill
-4) Maybe: make references to session global?
-5) Get rid of main module, or turn into __init__
-6) Add in scrollbars to schedule editor and listboxes on employee page
-7) Maybe fix reference nightmare: calendar_menu has to go through page to get
+2) Fix autofill
+3) Get rid of main module, or turn into __init__
+4) Add in scrollbars to schedule editor and listboxes on employee page
+5) Maybe fix reference nightmare: calendar_menu has to go through page to get
    to display, multiple calls to update_cost, instead of directly: observers?
+    -Failure to create controller for UI
 
 
 
 
 To Do: (* Are probably easy changes)
+-) Test, tests, more tests
 1) Encapsualte tk style in dict?
 2) Overhaul save/load/add/remove employee functions for better design: MVC?
 3) Fix session collection issue: employee object being updated in multiple areas?
@@ -74,7 +80,8 @@ To Do: (* Are probably easy changes)
 5) Add in warning dialogues
 6) Fix updating department list displaying when adding a new department
 7) Make schedule.department actually linked to db_department, not just string:
-    -Could Departments then be used as the query set instead of filtering?
+    -Department optionmenu's reflect database departments, not pre-determined
+     strings.
 8) Is it possible to associate text values in listbox with a StringVar?
 9) Clear employee info if employee is removed
     -Also put widgets in disabled state when no employee clicked?
@@ -190,12 +197,12 @@ class CalendarPage(tk.Frame):
     for that month.
     
     Attributes:
-        dep_list: a string list of all department names.
+        dep_list: A string list of all department names.
         side_info_frame: tk.Frame that contains schedule_editor and 
             calendar_calc.
-        calendar_menu: collection of widgets for selecting/saving calendar.
-        calendar_display: collection of widgets for interactive calendar.
-        calendar_calc: collection of widgets to display cost of calendar
+        calendar_menu: Collection of widgets for selecting/saving calendar.
+        calendar_display: Collection of widgets for interactive calendar.
+        calendar_calc: Collection of widgets to display cost of calendar
             relative to average monthly revenue.
     """
     
@@ -210,18 +217,15 @@ class CalendarPage(tk.Frame):
         Args: 
             master: tk.Frame to contain all child widgets.
             date: datetime.date object containing present month and year.
-            dep_list a string list of all department variables.
+            dep_list: A string list of all department variables.
         """
-    
+        self.session = session
         self.dep_list = dep_list
         self.side_info_frame = tk.Frame(master)
-        self.schedule_editor = ScheduleEditor(self.side_info_frame, 
-                                              session,
-                                              self)
+        self.schedule_editor = ScheduleEditor(self.side_info_frame, self)
     
-        self.calendar_menu = CalendarMenu(master, self, session, date, dep_list)
+        self.calendar_menu = CalendarMenu(master, self, date, dep_list)
         self.calendar_display = CalendarDisplay(master, self,
-                                                session, 
                                                 self.schedule_editor, 
                                                 date, dep_list[0])
                     
@@ -235,14 +239,27 @@ class CalendarPage(tk.Frame):
     def update_costs(self):
         """Update the renvenue calculator widgets."""
         self.calendar_calc.update_costs()
-                   
+                
+                
     def create_calendar(self, dep, date):
-        """Call calendar_display with a department/date to create calendar."""
+        """Call calendar_display with a department/date to create calendar.
+        
+        Args:
+            dep: String object to determine which department for the calendar.
+            date: datetime.date object to determine month/year for calendar.
+        """
         self.calendar_display.create_calendar(dep, date)
         
+        
     def save_calendar_to_excel(self, version):
-        """Call calendar_display to save calendar to an excel template."""
+        """Call calendar_display to save calendar to an excel template.
+        
+        Args:
+            version: String object to determine what version label to call 
+                current calendar when exporting to excel.
+        """
         self.calendar_display.save_calendar_to_excel(version)
+        
         
     def autofill(self):
         """Call calendar_display to execute autofill method."""
@@ -265,10 +282,10 @@ class CalendarMenu(tk.Frame):
         MONTH_TO_INT: dict for converting string month names to int.
         master: tk.Frame parent for all child widgets.
         c_page: calendar_page, a quasi-controller object.
-        dep_list: string list of all departments.
+        dep_list: String list of all departments.
         department_var: tk.StringVar for representing selected department.
         month_var: tk.StringVar for representing selected month.
-        year_var:tk.StringVar for representing selected year.
+        year_var: tk.StringVar for representing selected year.
         version_var: tk.StringVar for representing selected version.
     """
 
@@ -276,20 +293,19 @@ class CalendarMenu(tk.Frame):
                     "May":5, "June":6, "July":7, "August":8, "September":9, 
                     "October":10, "November":11, "December":12}
 
-    def __init__(self, master, c_page, session, date, dep_list):
+    def __init__(self, master, c_page, date, dep_list):
     
         """Initialize calendar selection and saving widgets.
         
         Args:
             master: tk.Frame container for child widgets.
-            c_page: quasi-controller class to call other widget collections.
+            c_page: Quasi-controller class to call other widget collections.
             date: datetime.date object containing present month and year.
-            dep_list: list of strings for department names.
+            dep_list: List of strings for department names.
         """
         
         self.master = master
-        self.c_page = c_page
-        self.session = session       
+        self.c_page = c_page      
         self.dep_list = dep_list
 
         # tk.Frame to hold the canvas which will display the y-axis scrollbar
@@ -374,6 +390,7 @@ class CalendarMenu(tk.Frame):
         sep_bottom = ttk.Separator(calendar_menu_frame, orient=tk.HORIZONTAL)
         sep_bottom.grid(row=1, column=0, columnspan=13, sticky="ew")
         
+        
     def create_cal_click(self):
         """Get date and department variables and call create calendar method."""
         dep = self.department_var.get()
@@ -381,6 +398,7 @@ class CalendarMenu(tk.Frame):
         year = int(self.year_var.get())
         date = datetime.date(year, month, 1)
         self.c_page.create_calendar(dep, date)
+        
         
     def save_calendar_to_excel(self):
         """Call save to excel method."""
@@ -392,7 +410,6 @@ class CalendarMenu(tk.Frame):
         """Call autofill method."""
         self.c_page.autofill()
         
-    
         
 		
 class CalendarDisplay(tk.Frame):
@@ -404,23 +421,23 @@ class CalendarDisplay(tk.Frame):
 
     Attributes:
         parent: tk.Frame container for child widgets.
-        c_page: quasi-controller class to call other widget collections.
+        c_page: Quasi-controller class to call other widget collections.
         schedule_editor: UI for user to add schedules to calendar.
-        dep: string for department name of current selected calendar.
+        dep: String for department name of current selected calendar.
         date: datetime.date for current selected calendar.
         day_vc_list: A list of day_vc objects that display corresponding
             information about that day: day number and schedules.
-        current_clicked_day: current active day for user interaction.
+        current_clicked_day: Current active day for user interaction.
         canvas: tk.Canvas container to display scrollbars.
         calendar_frame: tk.Frame container for the day_vc objects.
         calendar_title: tk.Frame container for day headers, ie Sunday, Tuesday.
-        DAYS: list to map integers to string representation.
+        DAYS: List to map integers to string representation.
     """
     
     DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
             'Thursday', 'Friday', 'Saturday']
 
-    def __init__(self, parent, c_page, session, schedule_editor, date, dep):
+    def __init__(self, parent, c_page, schedule_editor, date, dep):
         """Initialize widgets for interactive calendar.
         
         Initializes the various container widgets such as canvas and its 
@@ -429,15 +446,14 @@ class CalendarDisplay(tk.Frame):
         
         Args:
             parent: A parent tk.Frame object.
-            c_page: quasi-controller class to call other widget collections.
+            c_page: Quasi-controller class to call other widget collections.
             schedule_editor: UI for user to add schedules to calendar.
             date: datetime.date for current selected calendar.
-            dep: string for department name of current selected calendar.
+            dep: String for department name of current selected calendar.
         """
         
         self.parent = parent
         self.c_page = c_page
-        self.session = session
         self.schedule_editor = schedule_editor
        
         self.dep = dep
@@ -469,7 +485,6 @@ class CalendarDisplay(tk.Frame):
         self.create_calendar(dep, date)
         
         
-        
     def onFrameConfigure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"), 
                               width=1060, height=1200)
@@ -483,20 +498,31 @@ class CalendarDisplay(tk.Frame):
             
         
     def set_current_clicked_day(self, day):
-        """Set current day_vc for calendar_display to be supplied day_vc."""
+        """Set current day_vc for calendar_display to be supplied day_vc.
+        
+        Args:
+            day: day_vc object to be set as the current_clicked_day state.
+        """
         self.current_clicked_day = day
 		
+        
     def get_cal_array(self, year, month):
         """Get a python calendar with Sunday set as first weekeday.
         
         Args:
             year: Int representing year.
             month: Int in range 1-12.
+        Returns:
+            An array of a given month where each week is represented by another
+            array whose elements are the day numbers of the month. The 
+            calendar is set so that the weekday starts on a Sunday instead of 
+            the default Monday.
         """
         
         sundayCalendar = calendar
-        sundayCalendar.setfirstweekday(6) # Calendar default starts on monday
+        sundayCalendar.setfirstweekday(6)
         return sundayCalendar.monthcalendar(year, month)
+        
         
     def create_calendar(self, department, date):
         """Create a calendar for a given date and department.
@@ -508,6 +534,11 @@ class CalendarDisplay(tk.Frame):
         
         When a day in the calendar is clicked it is highlighted, which then
         schedules can be added or removed in the schedule editor.
+        
+        Args:
+            department: String object to determine which department for the 
+                calendar.
+            date: datetime.date object to determine month/year for calendar.
         """
         
         self.clear_calendar()
@@ -533,7 +564,7 @@ class CalendarDisplay(tk.Frame):
                 if day_number != 0:
                     date = datetime.date(self.date.year, self.date.month, 
                                          day_number)
-                day_model = DayModel(self.session, self, 
+                day_model = DayModel(self.c_page.session, self, 
                                      date, i, j, self.dep)
                 day_vc = DayViewController(self.calendar_frame, self, 
                                            self.schedule_editor, day_model)
@@ -541,12 +572,12 @@ class CalendarDisplay(tk.Frame):
         # Display schedules and click first day of that month
         self.click_reset()
         
+        
     def clear_calendar(self):
         """Destroy day widgets and clear list for that calendar's days."""
         for d in self.day_vc_list:
             d.destroy()
         self.day_vc_list = []
-        
      
           
     def save_calendar_to_excel(self, version):
@@ -556,6 +587,10 @@ class CalendarDisplay(tk.Frame):
         through all day widgets collecting each day's number (i.e. the 1st or
         2nd of the month) and the string that represetns the potential list
         of schedules for that day and maps them to a corresponding excel cell.
+        
+        Args:
+            version: String object to determine what version label to call 
+                current calendar when exporting to excel.
         """
         
         ws['A1'] = calendar.month_name[self.date.month]
@@ -578,8 +613,7 @@ class CalendarDisplay(tk.Frame):
                                             calendar.month_name[self.date.month], 
                                             self.date.year,
                                             version_var.get())
-                
-                                                 
+                               
         file_opt = {}
         file_opt['defaultextension'] = '.xlsx'
         file_opt['filetypes'] = [('Excel Files', '.xlsx')]
@@ -588,18 +622,16 @@ class CalendarDisplay(tk.Frame):
         file_opt['parent'] = self.parent
         file_opt['title'] = 'Save Calendar'
         
-        
-        dest_filename = tkFileDialog.asksaveasfilename(**file_opt)                   
-                                                 
+        dest_filename = tkFileDialog.asksaveasfilename(**file_opt)                                                      
         wb.save(filename = dest_filename)
         
        
     def autofill(self):
         """Fill each unassaigned schedule with most eligable employee
     
-        In chronological order of days in calendar, iterate through all schedules
-        and pick the first available (most eligable according to algorithm)
-        employee and set as that schedule's assign employee.
+        In chronological order of days in calendar, iterate through all 
+        schedules and pick the first available (most eligable according to 
+        algorithm) employee and set as that schedule's assign employee.
         """
    
         for d in self.day_vc_list:
@@ -616,7 +648,6 @@ class CalendarDisplay(tk.Frame):
         self.c_page.update_costs()
     
     
-
     
 class DayViewController(tk.Frame):
     """Create widgets to display day and update associated day model.
@@ -627,11 +658,13 @@ class DayViewController(tk.Frame):
     the model and to pass information on updating day model.
 
     Attributes:
-        DAY_COL_EXCEL: dict to map tkinter grid coordinates to excel coordinates.
+        DAY_COL_EXCEL: dict to map tkinter grid coordinates to excel 
+            coordinates.
         cal: reference to calendar display to inform if self is clicked.
         schedule_editor: reference to display schedule widgets.
         day_model: model representing this day.
-        day_number: string representing day number, "" if not of selected month.
+        day_number: string representing day number, "" if not of selected 
+            month.
         current_clicked_schedule: current schedule selected by user.
         schedule_widgets: dict of db schedule primary keys as keys and schedule
             widget objects as values.
@@ -727,7 +760,7 @@ class DayViewController(tk.Frame):
 
         
     def create_schedules_and_eligable_vc(self):
-        """Create appropriate schedule widgets and eligable_vc for this date."""
+        """Create schedule widgets and eligable_vc for this date."""
         self.reset_sw_and_eligables()
         schedules = self.day_model.schedules
         for id in schedules:
@@ -745,7 +778,12 @@ class DayViewController(tk.Frame):
                                        
     
     def set_to_clicked(self, event):
-        """Click this day_vc and display associated schedules in GUI."""
+        """Click this day_vc and display associated schedules in GUI.
+        
+        Args:
+            event: tk event object from a user left mouse click.
+        """
+        
         if self.day_number != "" and self.cal.current_clicked_day != self:
             self.cal.current_clicked_day.set_to_unclicked()
             self.day_frame.config(bg="LightSkyBlue")
@@ -770,19 +808,32 @@ class DayViewController(tk.Frame):
         self.schedules_lb.selection_clear(0, tk.END)    
         self.schedule_display.pack_forget()
         
+        
     def mouse_enter(self, event):
-        """Highlights day_widgets to display mouse enter event."""
+        """Highlights day_widgets to display mouse enter event.
+        
+        Args:
+            event: tk event object from a user mouse over tk object.
+        """
+        
         if self.day_number != "" and self.cal.current_clicked_day != self:
             self.day_frame.config(bg="#ccebff")
             self.number_label.config(bg="#ccebff")
             self.schedules_lb.config(bg="#ccebff")
         
+        
     def mouse_leave(self, event):
-        """De-highlights day_widgets to display mouse leave event."""
+        """De-highlights day_widgets to display mouse leave event.
+        
+        Args:
+            event: tk event object from a user mouse over tk object.
+        """
+        
         if self.day_number != "" and self.cal.current_clicked_day != self:
             self.day_frame.config(bg="white")
             self.number_label.config(bg="white")
             self.schedules_lb.config(bg="white")
+         
          
     def reset_sw_and_eligables(self):
         """Destroy schedule widgets and eligable_vc, reset selected schedule."""
@@ -793,6 +844,7 @@ class DayViewController(tk.Frame):
             self.eligable_vc[evc].destroy()
         self.current_clicked_schedule = None
             
+            
     def destroy(self):
         """Delete the widgets that are associated with this day_vc."""
         self.number_label.destroy()
@@ -802,8 +854,16 @@ class DayViewController(tk.Frame):
         for s in self.schedule_widgets:
             s.destroy_schedule_widgets()
 
+            
     def schedule_widget_click(self, event, schedule_widget):
-        """Select schedule via schedule widget and show appropriate widgets."""
+        """Select schedule via schedule widget and show appropriate widgets.
+        
+        Args:
+            event: tk event object from a user left mouse click on a schedule
+                widget.
+            schedule_widget: The schedule_widget object that was clicked upon.
+        """
+        
         id = schedule_widget.pk
         if id != self.current_clicked_schedule:
             schedule_widget.set_to_clicked()
@@ -815,8 +875,15 @@ class DayViewController(tk.Frame):
             # Display any potential employees in eligable listbox
             self.eligable_vc[id].show()
         
+        
     def schedule_lb_click(self, event):
-        """Select a particular schedule in this day_vc's listbox."""
+        """Select a particular schedule in this day_vc's listbox.
+        
+        Args:
+            event: tk event object from a user left mouse click on this day's
+                listbox.
+        """
+        
         cursel = self.schedules_lb.curselection()
         if cursel != ():
             self.curr_schedule_unclick()
@@ -839,8 +906,14 @@ class DayViewController(tk.Frame):
             eligable_vc.clear_values()
             eligable_vc.hide()
             
+            
     def highlight_new_schedule(self, id):
-        """Refresh view for new added schedule and highlight new schedule."""
+        """Refresh view for new added schedule and highlight new schedule.
+        
+        Args:
+            id: The primary key of the schedule to be highlighted in the view.
+        """
+        
         self.create_schedules_and_eligable_vc()
         
         sw = self.schedule_widgets[id]
@@ -848,13 +921,24 @@ class DayViewController(tk.Frame):
         
             
     def listbox_schedule_highlight(self, index):
-        """Highlight schedule in listbox corresponding to selected schedule."""
+        """Highlight schedule in listbox corresponding to selected schedule.
+        
+        Args:
+            index: The index of the listbox to be highlighted.
+        """
+        
         self.schedules_lb.selection_clear(0, tk.END)
         self.schedules_lb.selection_set(index)
 
         
     def update_schedule_str(self, id, new_str):
-        """Update the schedule string with given string argument."""
+        """Update the schedule string with given string argument.
+        
+        Args:
+            id: Primary key of the schedule to be updated.
+            new_str: The new string to represent the schedule in the view.
+        """
+        
         self.day_model.schedule_strings[id] = new_str
         
         index = self.day_model.schedules.index(id)
@@ -864,10 +948,17 @@ class DayViewController(tk.Frame):
         
     
     def edit_employee_name_text(self, index, new_str):
-        """Replace an employee name for particular schedule with a new name."""
+        """Replace an employee name for particular schedule with a new name.
+        
+        Args: 
+            index: Index in the listbox that will be edited.
+            new_str: The new string to represent the schedule in the view.
+        """
+        
         self.schedules_lb.delete(index)
         self.schedules_lb.insert(index, new_str)
         self.schedules_lb.selection_set(index)
+        
         
     def remove_schedule(self, id):
         """Removes schedule from display then informs model to remove schedule.
@@ -875,6 +966,10 @@ class DayViewController(tk.Frame):
         The primary key of the db schedule is used as the reference used to
         delete/destroy all relevent display regarding schedule. Then the PK
         is sent to the model and its remove method is called.
+        
+        Args:
+            id: Primary key of the schedule to be removed from the view then
+                from model.
         """
         
         del self.schedule_widgets[id]
@@ -892,19 +987,36 @@ class DayViewController(tk.Frame):
         
         
     def remove_deleted_schedule_text(self, index):
-        """Delete a schedule text in this day_vc's listbox."""
+        """Delete a schedule text in this day_vc's listbox.
+        
+        Args:
+            index: Index in the listbox that will be edited. 
+        """
+        
         self.schedules_lb.delete(index)
         
         
     def get_grid_coordinates(self):
-        """Get tkinter grid coordinates with respect to the day's date."""
+        """Get tkinter grid coordinates with respect to the day's date.
+        
+        Returns:
+            A 2-element tuple containing the tkinter grid coordinates for the
+            frame containing widgets to display this day.
+        """
+        
         row = self.day_model.week_number + 2
         col = self.day_model.weekday
         return (row, col)
         
         
     def get_text_for_excel(self):
-        """Get all schedules formatted into a string for an excel cell."""
+        """Get all schedules formatted into a string for an excel cell.
+        
+        Returns:
+            A string object containing all the schedule strings for an excel
+            spreadsheet cell.
+        """
+        
         text = ""
         schedules_text = self.schedules_lb.get(0, tk.END)
         
@@ -914,19 +1026,20 @@ class DayViewController(tk.Frame):
         return text    
         
         
-    """Get list of strings representing excel coordinates for this day's date.
-    
-    Two coordinates are returned from this method. The first is the header
-    coordinate for the day number then the second coordinate for the body
-    representing this day's schedules.
-    """
     def get_excel_coordinates(self):
+        """Get list of strings representing excel coordinates for this date.
+    
+        Returns:
+            Two coordinates are returned from this method. The first is the
+            header coordinate for the day number then the second coordinate for
+            the body representing this day's schedules.
+        """
+        
         week_row_header = str((self.day_model.week_number * 2) + 4)
         week_row_body = str((self.day_model.week_number * 2) + 5)
         day_col = self.DAY_COL_EXCEL[self.day_model.date.weekday()]
 
         return [day_col + week_row_header, day_col + week_row_body]
-    
     
     
       
@@ -992,9 +1105,9 @@ class DayModel(object):
         date = datetime.date(self.date.year, self.date.month, 
                              self.date.day)
         db_schedules = (self.session
-                         .query(DB_Schedule)
-                         .filter(DB_Schedule.schedule_date == date)
-                         .all())
+                            .query(DB_Schedule)
+                            .filter(DB_Schedule.schedule_date == date)
+                            .all())
                          
         db_schedules = [s for s in db_schedules if s.department == self.dep]
         db_schedules.sort(key=lambda schedule: schedule.start_time)
@@ -1015,7 +1128,16 @@ class DayModel(object):
 
         
     def get_schedule_str(self, schedule):
-        """Get str displaying start and end times and employee if assigned."""
+        """Get str displaying start and end times and employee if assigned.
+        
+        Args:
+            schedule: A schedule object.
+        
+        Returns:
+            str: A string representing the string version of the schedule to
+            be displayed by the view.
+        """
+        
         start_str, end_str = "", ""
         if schedule.s_undetermined_time:
             start_str = "?"
@@ -1039,11 +1161,21 @@ class DayModel(object):
         return str    
         
         
-    def insert_new_schedule(self, cal_date, sch_date, start, end,
-                            s_hide, e_hide, dep):
-        """Create new db schdule, refresh model, then return id of schedule."""
-        db_schedule = DB_Schedule(cal_date, sch_date, 
-                                  start, 
+    def insert_new_schedule(self, start, end, s_hide, e_hide, dep):
+        """Create new db schdule, refresh model, then return id of schedule.
+        
+        Args:
+            start: datetime.datetime object for start datetime of schedule.
+            end: datetime.datetime object for end datetime of schedule.
+            s_hide: Boolean to determine to hide start time string in the view.
+            e_hide: Boolean to determine to hide end time string in the view.
+            dep: String to determine department the schedule belongs to.
+            
+        Returns:
+            The primary key of the schedule for reference.
+        """
+        
+        db_schedule = DB_Schedule(start, 
                                   end,
                                   s_hide,
                                   e_hide,
@@ -1057,6 +1189,7 @@ class DayModel(object):
         
         return db_schedule.id
         
+        
     def reset_values(self):
         """Clear values of schedule ids, schedule str, and eligable models."""
         self.schedules = []
@@ -1065,7 +1198,12 @@ class DayModel(object):
         
         
     def remove_schedule(self, id):
-        """Remove schedule from model and db."""
+        """Remove schedule from model and db.
+        
+        Args:
+            id: The primary key of the schedule to be removed.
+        """
+        
         db_schedule = (self.session.query(DB_Schedule)
                                    .filter(DB_Schedule.id == id)
                                    .first())
@@ -1133,6 +1271,7 @@ class EligableViewController(tk.Frame):
                                            bg="white")
         self.eligable_listbox.bind('<<ListboxSelect>>', self.eligable_lb_click)
           
+          
     def clear_values(self):
         """Unpack the eligable listbox and clear all strings in listbox."""
         self.eligable_listbox.pack_forget()
@@ -1149,6 +1288,7 @@ class EligableViewController(tk.Frame):
     def hide(self):
         """Unpack the listbox to hide from user."""
         self.eligable_listbox.pack_forget()
+        
         
     def eligable_lb_click(self, event):
         """Assign clicked employee to schedule if user clicks okay on dialog.
@@ -1177,6 +1317,13 @@ class EligableViewController(tk.Frame):
         The warning dialog only triggers if the string representing employee
         name contains a warning flag of the pattern (x) where x is some 
         potential alphanumeric value.
+        
+        Args:
+            employee_str: A string representing employee name for the view.
+        Returns:
+            A boolean to determine if it is okay to assign this employee to 
+            desired schedule. Returns true always if employee has no warning
+            flag in string.
         """
         
         pattern = r'\(\w\)'
@@ -1319,6 +1466,9 @@ class EligableModel(object):
             5) Set employee_list as eligable_id_list in this instance, then 
                return e_listbox_list for use in the view.
         
+        Returns:
+            A list of strings representing the eligable employees in sorted 
+            order according to their 'availability' for use in the view.
         """
         
         eligables = collections.OrderedDict([('(A)', []), ('(O)', []), ('(U)', []), ('(V)', []), ('(S)', [])])
@@ -1367,6 +1517,13 @@ class EligableModel(object):
         nothing. This method uses the parallel list of employee id's to find
         the corresponding id to the name clicked by user than assigns that 
         to the schedule.
+        
+        Args:
+            index: The index in the sorted list of employees
+        Returns:
+            A string to represent the new string representing the schedule
+            given the employee to be assigned to schedule. Returns None if the
+            employee to be assigned is already assigned (nothing to change).
         """
         
         new_employee_id = self.eligable_id_list[index]
@@ -1398,6 +1555,20 @@ class EligableModel(object):
         
 
     def get_assigned_employee(self):
+        """Get index of employee assigned to schedule in sorted eligables list.
+        
+        Given the sorted list of eligable employees for a given schedule this
+        method tries to find the employee assigned to it in the list of 
+        eligable employees. In the case where no employee has been assigned
+        to this schedule the method returns -1 to indicate no employee has been
+        assigned. Note that if an employee is assigned to a schedule then that
+        employee will always be in the list of eligable employees.
+        
+        Returns:
+            An integer representing the index of the assigned employee of the
+            schedule with respect to the sorted list of eligable employees.
+            Returns -1 if no employee is assigned to the schedule.
+        """
         db_schedule = self.get_db_schedule(self.schedule_pk)
         if db_schedule.employee_id:
             employee = (self.session
@@ -1413,12 +1584,31 @@ class EligableModel(object):
             
             
     def get_db_schedule(self, id):
+        """Get the database schedule given its primary key.
+        
+        Args:
+            id: primary key of the schedule to query from database.
+        
+        Returns:
+            The database schedule object corresponding to supplied primary key.
+        """
+        
         db_schedule = (self.session.query(DB_Schedule)
                                    .filter(DB_Schedule.id == id)
                                    .first())
         return db_schedule
         
+        
     def get_db_employee(self, id):
+        """Get the database employee given its primary key.
+        
+        Args:
+            id: primary key of the employee to query from database.
+        
+        Returns:
+            The database employee object corresponding to supplied primary key.
+        """
+        
         employee = (self.session
                         .query(Employees)
                         .filter(Employees.employee_id == id)
@@ -1427,12 +1617,32 @@ class EligableModel(object):
 
 
 
-
-
-
 class ScheduleWidget(tk.Frame):
+    """Composite widget to represent a clickable schedule
+    
+    The ScheduleWidget allows for user to click on a tk.Label that highlights
+    color on both mouseover and mouse clicks. There is a remove button the user
+    can click which will then remove the schedule from the view and the 
+    database altogether.
+    
+    Attributes:
+        parent: tk.Frame container for the child widgets.   
+        pk: Primary key for the schedule for reference.
+        day_vc: View and controller reference for the date schedule is assigned.
+    """
     
     def __init__(self, parent, pk, schedule_str, day_vc):
+        """Initialize clickable schedule representation.
+
+        Args:
+            parent: tk.Frame container for the child widgets.   
+            pk: Primary key for the schedule for reference.
+            schedule_str: String representation of the schedule for view
+                display.
+            day_vc: View and controller reference for the date schedule is 
+                assigned.
+        """
+    
         self.parent = parent
         self.pk = pk
         self.day_vc = day_vc
@@ -1463,38 +1673,59 @@ class ScheduleWidget(tk.Frame):
         
                
     def set_to_clicked(self):
+        """Set the ScheduleWidget to be highlighted."""
         self.schedule_frame.config(bg="LightSkyBlue")
         self.schedule_label.config(bg="LightSkyBlue")
             
 
     def set_to_unclicked(self):
+        """Set the ScheduleWidget to be un-highlighted."""
         self.schedule_frame.config(bg="white")
         self.schedule_label.config(bg="white")
 
         
     def mouse_enter(self, event):
-        """Highlights schedule_widgets to display mouse enter event """
+        """Highlights schedule_widgets to display mouse enter event.
+        
+        Args:
+            event: tk mouse over event object.
+        """
+        
         if self.day_vc.current_clicked_schedule != self.pk:
             self.schedule_frame.config(bg="#ccebff")
             self.schedule_label.config(bg="#ccebff")
         
+        
     def mouse_leave(self, event):
-        """De-highlights schedule_widgets to display mouse leave event """
+        """De-highlights schedule_widgets to display mouse leave event.
+        
+        Args:
+            event: tk mouse leave event object.
+        """
+        
         if self.day_vc.current_clicked_schedule != self.pk:
             self.schedule_frame.config(bg="white")
             self.schedule_label.config(bg="white")
             
+            
     def set_text(self, str):
-        """Sets the StringVar value of this schedule widget"""
+        """Sets the StringVar value of this schedule widget.
+        
+        Args:
+            str: String that will set the new string to be displayed.
+        """
+        
         self.str_var.set(str)
         	
-    # Case where schedule is deleted entirely
+            
     def remove(self):
+        """Call day_vc to remove schedule, then destroy self widgets."""
         self.day_vc.remove_schedule(self.pk)
         self.destroy()
         
-    # Case where all the schedules currently being displayed are to be deleted
+    
     def destroy(self):
+        """Destroy all the widgets of this ScheduleWidget."""
         self.schedule_frame.destroy()
         self.schedule_label.destroy()
         self.remove_button.destroy()
@@ -1503,17 +1734,33 @@ class ScheduleWidget(tk.Frame):
 
 
 class ScheduleEditor:
+    """Composite widget to add schedules
+    
+    The ScheduleEditor allows for the user to add a schedule with several 
+    choices: The hour and minute and whether to hide or show start/end times to
+    the user. Due to the way the user interface is set up, the date and 
+    department have already been selected, so the user only needs to specify 
+    time and to hide or show the start/end times.
+    
+    Attributes:
+        master: tk.Frame container for the child widgets.   
+        c_page: Quasi-controller object for ScheduleEditor to
+            know calendar to add schedules to.
+    """
 
-    def __init__(self, master, session, calendar_page):
-        self.session = session
-        #self.calendar_gui = calendar_gui
+    def __init__(self, master, calendar_page):
+        """Initialize interface for user to add schedules to calendar.
+
+        Args:
+            master: tk.Frame container for the child widgets.   
+            calendar_page: Quasi-controller object for ScheduleEditor to
+                know calendar to add schedules to.
+        """
+        
         self.c_page = calendar_page
-        # First we instantiate all the Tkinter widgets to create a schedule
         self.master = master
-        # These are the frames where the schedules for the corresponding 
-        # day will be displayed along with the OptionMenu
-        # widgets that allow the user to input
-        # the start and end times for a given schedule
+        
+        # LabelFrame container for all child subwidgets
         self.schedule_frame = ttk.LabelFrame(self.master, text="Schedule Editor")
         self.schedule_frame.pack(fill="both")
         self.schedule_add_frame = tk.Frame(self.schedule_frame)
@@ -1550,17 +1797,22 @@ class ScheduleEditor:
                                         text="Hide End Time")
         self.e_hide_cb.grid(row=7, column=1, columnspan=3, sticky=tk.W+tk.N)
         
+        # Frame to display interactive, clickable schedules for given day.
         self.schedule_widgets_frame = tk.Frame(self.schedule_frame)
         self.schedule_widgets_frame.pack(pady=6)
 
-        
 
-
-    # Edit how we get start_time_str, etc for new structure
-    # May need to make a lambda definition to pass in reference to calendar_page
     def add_schedule(self):
-        # Our string for strptime is arranged by:
-        # Year, month, day, hour, minute, AM/PM
+        """Add a schedule to corresponding calendar currently loaded.
+        
+        Add schedule uses the current loaded calendar to determine what date
+        is currently selected by the user, along with the department of the
+        of the calendar, then combines this information with the start and 
+        end times selected by the user along with hide/show booleans selected 
+        by user to create a schedule object that will be added to a database 
+        and view.
+        """
+
         cal = self.c_page.calendar_display
         day_vc = cal.current_clicked_day
         day_model = day_vc.day_model
@@ -1588,41 +1840,66 @@ class ScheduleEditor:
                                               "%Y %m %d %I %M %p")
         # Ensure a valid begining and end time have been selected
         if start_datetime < end_datetime:
-            id = day_model.insert_new_schedule(cal_date, schedule_date, 
-                                                start_datetime, 
-                                                end_datetime,
-                                                self.s_hide.get(),
-                                                self.e_hide.get(),
-                                                cal.dep)
+            id = day_model.insert_new_schedule(start_datetime, 
+                                               end_datetime,
+                                               self.s_hide.get(),
+                                               self.e_hide.get(),
+                                               cal.dep)
             day_vc.highlight_new_schedule(id)
         else:
             print("Invalid Schedule time. " 
                   "Start time begins after end time. Beep. Boop. Bop.")
             
-          
-        
+   
             
 class CalendarCalculator:
-    # Fix issue with sum not summing
-    # Fix issue with different month getting same value as current month
-    # Fix cost() method to return correct cost of schedule
+    """Composite widget to display costs of all calendars for given month.
+    
+    The CalendarCalculator is essentially a list of percentages of employment
+    cost for a given month's schedules relative to average monthly revenue
+    for that given month. Using the current selected calendar's month and year,
+    CalendarCalculator fetches this employment cost to revenue for all
+    departments and displays them in a list. Lastly, CalendarCalculator then
+    creates a summation of all percentages and uses this to display total cost
+    of all employment for that month relative to average revenue for that
+    month.
+    
+    Attributes:
+        master: tk.Frame container for the child widgets.   
+        cal: Quasi-controller object for ScheduleEditor to
+            know calendar to add schedules to.
+        percentage_dict: dictionary object that maps strings of department
+            names to a tk.StringVar object that represent the percentage of 
+            employment cost to average revenue for the current selected month 
+            and year.
+    """
+    
     def __init__(self, master, session, calendar_display, dep_list):
+        """Initialize the display of costs for calendars.
+
+        Args:
+            master: tk.Frame container for the child widgets.   
+            calendar_page: Quasi-controller object for ScheduleEditor to
+                know calendar to add schedules to.
+            dep_list: A string list of all departments.
+        """
+    
         self.master = master
         self.session = session
         self.cal = calendar_display
         self.percentage_dict = {}
         
         
-        self.calc_frame = ttk.LabelFrame(self.master, 
-                                         text='Payroll To Revenue Ratio*')
-        self.calc_frame.pack(fill=tk.X, pady=12)
-        self.warning_lbl = tk.Label(self.calc_frame, 
-                                    text='*Alpha Vesion Does Not Include Benefits Cost')
-        self.warning_lbl.pack()
+        calc_frame = ttk.LabelFrame(self.master, 
+                                    text='Payroll To Revenue Ratio*')
+        calc_frame.pack(fill=tk.X, pady=12)
+        warning_lbl = tk.Label(calc_frame, 
+                               text='*Alpha Vesion Does Not Include Benefits Cost')
+        warning_lbl.pack()
         
         for k in dep_list:
             
-            frame = tk.Frame(self.calc_frame, borderwidth=1)
+            frame = tk.Frame(calc_frame, borderwidth=1)
             frame.pack()
             title = tk.Label(frame, 
                                   width=10, height=1,
@@ -1635,7 +1912,7 @@ class CalendarCalculator:
             percentage_label.pack(side=tk.LEFT)
             
         # Create a special calculator that is the total of all calendars
-        frame = tk.Frame(self.calc_frame, borderwidth=1)
+        frame = tk.Frame(calc_frame, borderwidth=1)
         frame.pack()
         title = tk.Label(frame, 
                               width=10, height=1,
@@ -1654,7 +1931,6 @@ class CalendarCalculator:
         
     def get_percentage(self, schedules, total):
         """Return percentage cost of schedules relative to total."""
-
         sum = 0.0
         for s in schedules:
             sum += s.cost()
@@ -1664,7 +1940,7 @@ class CalendarCalculator:
 
         
     def get_monthly_total_avg(self):
-        """ Return average total revenue for month and year."""
+        """Return average total revenue for month and year."""
         monthly_sales = self.session.query(MonthSales).all()
         monthly_sales = [s for s in monthly_sales if (s.month_and_year.month
                                                       == self.cal.date.month)]
@@ -1680,6 +1956,7 @@ class CalendarCalculator:
         
 
     def update_costs(self):
+        """Update list of all percentages."""
         monthly_avg = self.get_monthly_total_avg()
         # Case where there is no revenue data to compare schedule cost with
         if monthly_avg is None:
@@ -1702,8 +1979,6 @@ class CalendarCalculator:
         for k in dep_schedules:
             schedule_coll = [s for s in schedules if s.department == k]
             dep_schedules[k] = schedule_coll
-         
-
             
         for k in dep_schedules:
             percent = self.get_percentage(dep_schedules[k], monthly_avg)
