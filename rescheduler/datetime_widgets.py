@@ -2,7 +2,12 @@ import Tkinter as tk
 import ttk
 import datetime
 
-
+"""
+Date Entry was found at:
+http://stackoverflow.com/questions/13242970/tkinter-entry-box-formatted-for-date/13243973
+By user:
+http://stackoverflow.com/users/1795505/pydsigner
+"""
 
 class DateEntry(tk.Frame):
     def __init__(self, master, frame_look={}, **look):

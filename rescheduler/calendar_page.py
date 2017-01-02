@@ -1,3 +1,12 @@
+""" 
+Rescheduler Alpha
+
+Author: Ryan Johnson
+Python 2.7.11
+openpyxl 2.3.2
+SQLAlchemy 1.0.12
+"""
+
 import Tkinter as tk
 import ttk
 import tkFileDialog
@@ -21,21 +30,6 @@ from sqlalchemy.orm import sessionmaker
 from openpyxl import Workbook, load_workbook, cell
 from openpyxl.styles import Alignment
 
-
-""" 
-Rescheduler Alpha
-
-http://stackoverflow.com/questions/13242970/tkinter-entry-box-formatted-for-date/13243973
-http://stackoverflow.com/users/1795505/pydsigner
-
-
-Author: Ryan Johnson
-Python 2.7.11
-openpyxl 2.3.2
-SQLAlchemy 1.0.12
-
-"""
-	
     
 wb = load_workbook('CalendarTemplate.xlsx')
 ws = wb['Calendar']
