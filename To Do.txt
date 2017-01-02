@@ -1,0 +1,82 @@
+To Do list:
+
+
+Pythonisize Code:
+1) Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
+    -Add session into args comment for relevant classes
+    -make attributes and private methods pythonic
+    -Make idioms consistent: tk.LEFT only, replace args like 'left'
+    -Check import style guides and make pythonic
+    -Make sure conditionals are pythonic: 
+        Save method test should have better type checking idioms
+    -Perhaps simplify deleting methods
+    -Inherit from object for classes? Inherit tk.Frame, etc.
+    -Get rid of calls to constants like DAY, replace with library:
+        -MONTHS
+        -DAYS
+        -Letters for version: alphabet
+2) Get rid of main module, or turn into __init__?
+3) Add in scrollbars to schedule editor and listboxes on employee page
+4) Maybe fix reference nightmare: calendar_menu has to go through page to get
+   to display, multiple calls to update_cost, instead of directly: observers?
+    -Failure to create controller for UI?
+
+
+
+
+To Do General List: (* Are probably easy changes)
+1) Fix issue with different month getting same value as current month
+2) Encapsualte tk style in dict?
+3) Overhaul save/load/add/remove employee functions for better design: MVC?
+4) Fix session collection issue: employee object being updated in multiple areas?
+5) Make export to excel work well: no need for template
+6) Add in warning dialogues
+7) Fix autofill
+8) Fix updating department list displaying when adding a new department
+9) Make schedule.department actually linked to db_department, not just string:
+    -Department optionmenu's reflect database departments, not pre-determined
+     strings.
+10) Is it possible to associate text values in listbox with a StringVar?
+11) Clear employee info if employee is removed
+    -Also put widgets in disabled state when no employee clicked?
+12) Fix date entry class: bugs with deletion
+13) Change instantiated calendar upon starting program to be next month 
+    of current datetime.datetime.now() month
+14) Redesign calc_widgets to be more efficient: 1 Query to DB then process?
+15*) Get some type of regex for day_widget title in schedule area
+16*) Add optional arg to TimeEntry for setting default values: kwargs?
+17*) Change application icon
+18) Refactor into MVC design: CalendarCalc, EmployeePage, SalesPage
+
+
+
+
+Misc:
+
+Questions I have about good programming/pythonic programming:
+1) Should all my classes use inheritance, even if only from object? Frame?
+2) For OOP, when should I use the self prefix?
+3) How should my classes reference SQLAlchemy's session object? Global?
+    Passed in via __init__?
+4) Should EmployeePage be seperated into several other classes for readability
+    and seperation of concerns?
+5) Listbox with parallel list idiom: make a class?
+
+
+
+
+What are the user cases where a dialogue box is useful?
+1) The user tries to create a schedule whos end time is less then or equal
+    to the start time
+3) User wants to save an employee but enter invalid information or 
+    the wrong kind of information into the fields: 
+    Perhaps a smart program doesn't permit invalid entries?
+4) User wants to remove selected employee: Flag a are you sure box
+5) User wants to remove a vacation schedule: Simple yes no 
+6) User wants to add a vacation schedule but overlaps with assigned work 
+    schedules: What should this be?
+7) User wants to add a vacation schedule with no employee clicked or 
+    an employee yet to be added to DB: flag user with error
+8) User wants to add a vacation schedules whos start date is after the 
+    end date: flag user with an error
+9) User wants to delete a department: yes/no dialogue
