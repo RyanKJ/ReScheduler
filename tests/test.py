@@ -10,6 +10,7 @@ import unittest
 import orm_models as orm
 import datetime
 from test_doubles import DayModelDummy
+from calendar_page import EligableModel
 
 
 
@@ -348,7 +349,7 @@ class GetEligablesTest(unittest.TestCase):
     secondary, thus should never appear on the list of eligables.
     """
     
-    EMPLOYEE_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+    employees = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'}
     
     def setUp(self):
         """
@@ -371,30 +372,84 @@ class GetEligablesTest(unittest.TestCase):
         self.start = self.dt - self.schedule_length
         self.end = self.dt + self.schedule_length
         self.schedule = create_schedule(self.session, self.start, self.end, 
-                                        self.department.name)
+                                        self.dep1.name)
     
         eligable_model = EligableModel(self.session, self.schedule.id, 
                                        self.dep1, DayModelDummy)
-                                       
         
-        for e in self.EMPLOYEE_NAMES:
-            self.employee = create_employee(self.session, e)
-                                       
+        # Create employees
+        for e in ['A', 'B', 'C', 'D', 'E']:
+            employee = create_employee(self.session, e, e, self.dep1)
+            employees[e] = employee
+        for e in ['F', 'G', 'H', 'I', 'J']:
+            employee = create_employee(self.session, e, e, self.dep2, self.dep1) 
+            employees[e] = employee
+        employee = create_employee(self.session, 'K', 'K', 'Driver')  
+        employees['K'] = employee
+
+        # Create unavailable repeat conflicts
+        start_time = datetime.time(12, 0)
+        end_time = datetime.time(16, 0)
+        unavailable1 = create_unavailable(self.session, start_time, end_time, 
+                                          1, self.employees['C'].employee_id)                           
+        unavailable2 = create_unavailable(self.session, start_time, end_time, 
+                                          1, self.employees['H'].employee_id)
+                                          
+        # Create vacation conflicts
+        v_start = datetime.datetime(2017, 2, 14, 0, 0, 0)
+        v_end = datetime.datetime(2017, 2, 14, 23, 59, 59)
+        vacation1 = create_vacation(self.session, v_start, v_end, 
+                                    self.employees['D'].employee_id)
+        vacation2 = create_vacation(self.session, v_start, v_end, 
+                                    self.employees['I'].employee_id)
+                                    
+        # Create schedule conflicts
+        t_delta = datetime.timedelta(0, 900) # 15 minutes
+        overlap_sch1 = get_overlapping_schedule(self.session,
+                                                self.schedule, 
+                                                t_delta, 'START')
+        overlap_sch2 = get_overlapping_schedule(self.session,
+                                                self.schedule, 
+                                                t_delta, 'START')
+        assign_schedule(self.session, self.employees['E'], overlap_sch1)
+        assign_schedule(self.session, self.employees['J'], overlap_sch1)
+                                    
         
     def testGetEligables(self):
         """get_eligables creates 2 list, for the model and the view.
         
-        Assert that eligable_model.eligable_id_list is correct
-        Assert that e_listbox_list is correct
+        Assert that eligable_model.eligable_id_list is correct.
+        Assert that e_listbox_list is correct.
         """
         
-        expected_result = ['e1', 'e2', '...']
+        expected_lb_list = ['A', 'B', 'F', 'G', 'C', 'H', 'D', 'I', 'E', 'J']
         eligable_list = self.employee.get_availability(self.schedule)
-        self.assertEqual(availability, '(A)', msg='No conflict')
+        self.assertEqual(expected_lb_list, eligable_list, msg='Eligable list conflict')
      
      
     def tearDown(self):
-        pass
+        """Remove everything from the database."""
+        employees = self.session.query(orm.Employees).all()
+        for e in employees:
+            self.session.delete(e)
+        
+        departments = self.session.query(orm.Department).all()
+        for d in departments:
+            self.session.delete(d)
+
+        schedules = self.session.query(orm.DB_Schedule)
+        for s in schedules:
+            self.session.delete(s)
+            
+        vacations = self.session.query(orm.Unavailable_Schedule)
+        for v in vacations:
+            self.session.delete(v)
+            
+        unavailable_repeats = self.session.query(orm.UnavailableTime)
+        for u_re in unavailable_repeats:
+            self.session.delete(u_re)
+        
+        self.session.commit()
 
 
         
