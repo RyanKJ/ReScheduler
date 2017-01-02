@@ -14,12 +14,11 @@ from employee_page import (EmployeePage, EmployeeList, DepartmentList,
 from sales_page import SalesPage
 from datetime_widgets import TimeEntry, DateEntry, yearify
 from orm_models import *
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from openpyxl import Workbook
-from openpyxl import load_workbook
-from openpyxl import cell
+from openpyxl import Workbook, load_workbook, cell
 from openpyxl.styles import Alignment
 
 
