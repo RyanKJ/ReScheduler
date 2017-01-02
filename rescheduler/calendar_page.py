@@ -756,7 +756,7 @@ class DayViewController(tk.Frame):
         self.day_frame.destroy()
         self.schedule_display.destroy()
         for s in self.schedule_widgets:
-            s.destroy_schedule_widgets()
+            self.schedule_widgets[s].destroy()
 
             
     def schedule_widget_click(self, event, schedule_widget):
@@ -1883,11 +1883,20 @@ class CalendarCalculator:
         for k in dep_schedules:
             schedule_coll = [s for s in schedules if s.department == k]
             dep_schedules[k] = schedule_coll
-            
+        
+        # We find individual percentage costs for department and keep a
+        # running sum in order to also calculate total percentage cost of all
+        # departments.
+        total = 0
         for k in dep_schedules:
             percent = self.get_percentage(dep_schedules[k], monthly_avg)
+            total += percent
             var = self.percentage_dict[k]
-            var.set((str(percent) + "%") )
+            var.set((str(percent) + "%"))
+        total_var = self.percentage_dict['Total']
+        total_var.set((str(total) + "%"))
+       
+            
         
             
     
