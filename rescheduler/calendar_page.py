@@ -24,20 +24,6 @@ from openpyxl.styles import Alignment
 
 
 """ 
-1) Fix issue with total sum not summing
-2) Fix issue with different month getting same value as current month
-3) Add session arg into comments for relevant classes
-4) Make optionmenu items responsive to department database
-5) Make other database tables use departments
-6) Get rid of calls to constants like DAY, replace with library:
-    -MONTHS
-    -DAYS
-    -Letters for version: alphabet
-
-
-    
-    
-    
 Rescheduler Alpha
 
 http://stackoverflow.com/questions/13242970/tkinter-entry-box-formatted-for-date/13243973
@@ -54,6 +40,7 @@ SQLAlchemy 1.0.12
 
 Pythonisize Code:
 1) Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
+    -Add session into args comment for relevant classes
     -make attributes and private methods pythonic
     -Make idioms consistent: tk.LEFT only, replace args like 'left'
     -Check import style guides and make pythonic
@@ -61,8 +48,11 @@ Pythonisize Code:
         Save method test should have better type checking idioms
     -Perhaps simplify deleting methods
     -Inherit from object for classes? Inherit tk.Frame, etc.
-2) Fix autofill
-3) Get rid of main module, or turn into __init__
+    -Get rid of calls to constants like DAY, replace with library:
+        -MONTHS
+        -DAYS
+        -Letters for version: alphabet
+3) Get rid of main module, or turn into __init__?
 4) Add in scrollbars to schedule editor and listboxes on employee page
 5) Maybe fix reference nightmare: calendar_menu has to go through page to get
    to display, multiple calls to update_cost, instead of directly: observers?
@@ -72,12 +62,13 @@ Pythonisize Code:
 
 
 To Do: (* Are probably easy changes)
--) Test, tests, more tests
+1) Fix issue with different month getting same value as current month
 1) Encapsualte tk style in dict?
 2) Overhaul save/load/add/remove employee functions for better design: MVC?
 3) Fix session collection issue: employee object being updated in multiple areas?
 4) Make export to excel work well: no need for template
 5) Add in warning dialogues
+6) Fix autofill
 6) Fix updating department list displaying when adding a new department
 7) Make schedule.department actually linked to db_department, not just string:
     -Department optionmenu's reflect database departments, not pre-determined
