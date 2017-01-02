@@ -1,17 +1,14 @@
 """
-
 Exhaustively enumerate cases for:
 -get_availability
 -get_eligables
-
-
 """
+
 import unittest
 import orm_models as orm
 import datetime
 from test_doubles import DayModelDummy
 from calendar_page import EligableModel
-
 
 
 def create_department(session, dep):
