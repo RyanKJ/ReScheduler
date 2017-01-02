@@ -8,15 +8,6 @@ from orm_models import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-"""
-To do:
-    -Add missing fields for save and load methods
-    -Fix add vacations datetime issue
-     
-    -Add in 3 disable methods? Set widgets default state, load functions
-     make actives. But what makes them unactive?
-     
-"""
 
 
 class EmployeePage(tk.Frame):
