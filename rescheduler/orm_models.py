@@ -1,3 +1,7 @@
+"""
+Module for the database ORM representation
+"""
+
 import datetime
 import calendar
 from sqlalchemy import create_engine, ForeignKey
@@ -64,7 +68,6 @@ class DB_Schedule(Base):
         
     def get_time(self):
         hour = star
-        
         
     
     

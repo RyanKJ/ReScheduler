@@ -1,3 +1,12 @@
+""" 
+Rescheduler Alpha
+
+Author: Ryan Johnson
+Python 2.7.11
+openpyxl 2.3.2
+SQLAlchemy 1.0.12
+"""
+
 import Tkinter as tk
 import calendar_page
 from orm_models import start_db

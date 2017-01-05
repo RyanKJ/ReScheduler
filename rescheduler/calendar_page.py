@@ -1,10 +1,5 @@
-""" 
-Rescheduler Alpha
-
-Author: Ryan Johnson
-Python 2.7.11
-openpyxl 2.3.2
-SQLAlchemy 1.0.12
+"""
+Module for the interactive calendar page
 """
 
 import Tkinter as tk

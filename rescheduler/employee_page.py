@@ -1,3 +1,7 @@
+"""
+Module for the employee and department page.
+"""
+
 import Tkinter as tk
 import ttk
 import datetime
@@ -11,9 +15,24 @@ from sqlalchemy.orm import sessionmaker
 
 
 class EmployeePage(tk.Frame):
+    """
+    Controller class for all employee composite widgets classes. There are 5 
+    composite widget classes for Employee page: EmployeeList, a list of 
+    employees, DepartmentList, a list of departments, EmployeeInfoForm, the 
+    area where the user can edit a new or existing employee,
+    EmployeeRepeatUnavailable, a form for the user to add unavailable repeats
+    of an employee, and EmployeeVacations, a form to add a vacation for an
+    employee.
     
+    Employee page acts as the controller to let the different composite
+    widgets talk to each other and to know the current selected employee.
+    """
     
     def __init__(self, parent, session, calendar_page):
+        """
+        Initialize EmployeePage and the different composite widgets
+        """
+        
         tk.Frame.__init__(self, parent)
         
         self.session = session
@@ -73,31 +92,56 @@ class EmployeePage(tk.Frame):
                                    text="Unavailable Days")
         self.unavailability_nb.add(self.vacation_frame, 
                                    text="Vacation Times")
-                                   
-                                   
-    def load_employee_data(self, employee):
-        self.e_info_form.load_employee_form(employee)
-        self.e_unav_form.load_unav_times(employee)
-        self.e_vacation_form.load_vacations(employee)
+                  
+                  
+    def get_employee(self, id):
+        """Return employee in database given employee id."""
+        employee = (self.session.query(Employees)
+                                .filter(Employees.employee_id == id)
+                                .first())
+        return employee
         
-    def update_e_list(self, employee):
-        self.employee_list.update_listbox(employee)
+                                   
+    def load_employee_data(self, employee_id):
+        """Load employee info, repeating unavailability, and vacations."""
+        self.e_info_form.load_employee_form(employee_id)
+        self.e_unav_form.load_unav_times(employee_id)
+        self.e_vacation_form.load_vacations(employee_id)
+        
+    def update_e_list(self, employee_id):
+        """Update list of employees in employee listbox."""
+        self.employee_list.update_listbox(employee_id)
         
     def add_new_e_info(self):
+        """Fill in employee info form as a new employee."""
         self.e_info_form.add_new_e_info()
                              
                                   
         
 class EmployeeList(tk.Frame):
-        
+    """
+    Composite widget to display the list of employees.
+    
+    EmployeeList loads all employees and displays them. It also contains two
+    buttons to add and remove employees. If an employee is clicked on, it will
+    use a callback that will tell EmployeeInfoForm to load the appropriate
+    information for that employee.
+    """
+    
+    employee_id_list = []
         
     def __init__(self, parent, session, e_page, calendar_page):
+        """
+        Initialize EmployeeList widgets, load employees
+        """
+    
         tk.Frame.__init__(self, parent)
         
         self.session = session
         self.e_page = e_page
         self.cal = calendar_page
         
+        # Create and load listbox and its parallel list
         self.employee_listbox = tk.Listbox(self, 
                                            exportselection=0, 
                                            height=14, width=25, 
@@ -108,13 +152,7 @@ class EmployeeList(tk.Frame):
         self.employee_listbox.bind('<<ListboxSelect>>', self.load_employee)
         self.employee_listbox.bind('<Double-1>', self.load_employee)
         self.employee_listbox.bind('<Return>', self.load_employee)
-        
-        # 2 Parallel lists, employee_name_list is synced with employee_db_list. 
-        self.employee_db_list = self.session.query(Employees).all()
-        self.employee_db_list.sort(key=lambda e: e.first_name)
-        for e in self.employee_db_list: # Do we need a for loop for this? Isn't there a way to instantiate listbox with a list?
-            self.employee_listbox.insert(tk.END, e.first_name)
-            
+        self.load_listbox_and_parallel_list()
             
         # Add and remove employee buttons
         self.add_employee_button = ttk.Button(self, 
@@ -126,10 +164,21 @@ class EmployeeList(tk.Frame):
                                                 command=self.remove_employee)
         self.remove_employee_button.grid(row=9, column=2)
 
-
+        
+    def load_listbox_and_parallel_list(self):
+        """Load listbox of employee names and parallel list of employee_id."""
+        employee_db_list = self.session.query(Employees).all()
+        employee_db_list.sort(key=lambda e: e.first_name)
+        
+        for e in employee_db_list:
+            str = e.first_name + " " + e.last_name
+            self.employee_listbox.insert(tk.END, str)
+            
+        self.employee_id_list = [e.employee_id for e in employee_db_list]
         
         
     def add_new_employee(self):
+        """Add new employee to listbox."""
         self.employee_listbox.selection_clear(0, tk.END)
         self.employee_listbox.insert(tk.END, "New Employee")
         self.employee_listbox.selection_set(tk.END)
@@ -140,68 +189,76 @@ class EmployeeList(tk.Frame):
         
         
     def load_employee(self, event):
-        # When listbox employee is clicked, from parallel list find employee, then fetch all relevant data and input into appopriate widgets
-        employee = self.get_employee()
-        self.e_page.curr_sel_employee = employee
-        self.e_page.load_employee_data(employee)
+        """Tell controller to load the employee that whose name was clicked."""
+        employee_id = self.get_employee_id()
+        self.e_page.curr_sel_employee = employee_id
+        self.e_page.load_employee_data(employee_id)
         
     
     def remove_employee(self):
-        employee = self.get_employee()
+        """Delete employee from lb and tell controller to remove employee."""
         if self.employee_listbox.curselection() == ():
-            return
+            return 
         index = self.employee_listbox.curselection()[0]
         self.employee_listbox.delete(index)
-        # Employee in listbox may be uncommitted new employee not in parallel list
-        if index < len(self.employee_db_list):
+        # Employee in listbox may be new employee not in parallel list
+        if index < len(self.employee_id_list):
+            employee_id = self.employee_id_list[index]
+            employee = self.e_page.get_employee(employee_id)
             self.session.delete(employee)
             self.session.commit()
-            del self.employee_db_list[index]
+            del self.employee_id_list[index]
 
         
-
-    # Returns a the selected employee, returns None is nothing is 
-    # clicked yet or employee is a New Employee yet to be added to the database
-    def get_employee(self):
+    def get_employee_id(self):
+        """Get the employee id from lb click.
+        
+        Returns:
+            None: if no element in listbox was selected
+            employee_id: if employee existing in database is clicked
+            "New Employee": A new employee that doesn't exist in database, but
+                exists in the listbox.
+        """
         if self.employee_listbox.curselection() == ():
             return None
         index = self.employee_listbox.curselection()[0]
-        # Case where DB employee list is smaller signals uncomitted mew employees
-        if index < len(self.employee_db_list):
-            return self.employee_db_list[index]
+        # Case where index is larger than length means that listbox curselect
+        # refers to element not in parallel list, or, new employee.
+        if index < len(self.employee_id_list):
+            return self.employee_id_list[index]
         else:
             return "New Employee"
-    
-    def set_employee(self):
-        pass
+
         
-        
-    def update_listbox(self, employee):
-        # if  self.employee_db_list contains, potentially update name
-        # if not, append to end, since new employee
-        print "Employee is: " + employee.first_name
-        if employee in self.employee_db_list:
-            index = self.employee_db_list.index(employee)
+    def update_listbox(self, employee_id):
+        """Update the name of employee in the listbox."""
+        employee = self.e_page.get_employee(employee_id)
+        str = employee.first_name + " " + employee.last_name
+        if employee_id in self.employee_id_list:
+            index = self.employee_id_list.index(employee_id)
             self.employee_listbox.delete(index)
-            self.employee_listbox.insert(index, employee.first_name)
+            self.employee_listbox.insert(index, str)
             self.employee_listbox.selection_set(index)
         else:
-            self.employee_db_list.append(employee)
+            self.employee_id_list.append(employee_id)
             list_of_names = self.employee_listbox.get(0, tk.END)
-            print 'List of names is: '
-            print list_of_names
             for text in list_of_names:
                 if text == "New Employee":
                     index = list_of_names.index(text)
                     self.employee_listbox.delete(index)
-                    self.employee_listbox.insert(index, employee.first_name)
+                    self.employee_listbox.insert(index, str)
                     self.employee_listbox.selection_set(index)
                     break
             
          
         
 class DepartmentList(tk.Frame):
-
+    """
+    Composite widget to display the list of departments.
+    
+    DepartmentList loads all departments and displays them. It also contains 
+    two buttons to add and remove departments.
+    """
 
     def __init__(self, parent, session, calendar_page):
         tk.Frame.__init__(self, parent)
@@ -217,8 +274,8 @@ class DepartmentList(tk.Frame):
         self.department_listbox.grid(row=11, column=0, 
                                      rowspan=6, columnspan=3,
                                      pady=8)
-        # 2 Parallel lists, employee_name_list is synced with employee_db_list. 
-        for d in self.cal.dep_list: # Do we need a for loop for this? Isn't there a way to instantiate listbox with a list?
+
+        for d in self.cal.dep_list:
             self.department_listbox.insert(tk.END, d)
         
         self.add_department_button = ttk.Button(self, 
@@ -274,7 +331,15 @@ class DepartmentList(tk.Frame):
                    
         
 class EmployeeInfoForm(tk.Frame):
-
+    """
+    Composite widget to display information about the employee.
+    
+    EmployeeInfoForm is given an employee id number which is then used to fetch
+    the employee information from the database. All relevant information about
+    the employee is loaded. Then if the user clicks save, the class validates
+    the information and if it is appropriate information is then committed to
+    the database.
+    """
 
     def __init__(self, parent, session, e_page, calendar_page):
         tk.Frame.__init__(self, parent)
@@ -407,9 +472,10 @@ class EmployeeInfoForm(tk.Frame):
         
         
         
-    def load_employee_form(self, employee):
+    def load_employee_form(self, employee_id):
         # Case where employee is already in database
-        if employee != None and employee != "New Employee":
+        if employee_id != None and employee_id != "New Employee":
+            employee = self.e_page.get_employee(employee_id)
             # Then edit all employee info widgets to represent the database data
             self.f_name_var.set(employee.first_name)
             self.l_name_var.set(employee.last_name)
@@ -455,10 +521,10 @@ class EmployeeInfoForm(tk.Frame):
         if not isinstance(l_name, basestring):
             errors.append("Employee name must be alphanumeric characters. "
                           "Employee name currently is: %s" % l_name)
-        employee_id = self.e_id.get()
-        if type(employee_id) is not int:
+        new_e_id = self.e_id.get()
+        if type(new_e_id) is not int:
             errors.append("Employee ID must be non-decimal number. "
-                          "Employee ID currently is: %s" % employee_id)
+                          "Employee ID currently is: %s" % new_e_id)
         wage_value = self.e_wage.get()
         if type(wage_value) is not float:
             errors.append("Employee wage must be a number. "
@@ -467,17 +533,15 @@ class EmployeeInfoForm(tk.Frame):
         medical_value = self.medical_var.get()
         work_comp = self.work_comp_var.get()
         social = self.soc_sec_var.get()
-        #if type(medical_value) is not float:
-        #    errors.append("Medical insurance cost must be a number. "
-        #                  "Medical currently is: %s" % medical_value)
-        if self.employee_id_conflict(employee_id):
-            errors.append("Employee ID %s is already taken." % employee_id)
+        if self.employee_id_conflict(new_e_id):
+            errors.append("Employee ID %s is already taken." % new_e_id)
         if errors == []:
-            employee = self.e_page.curr_sel_employee
-            if employee != None and employee != "New Employee":
+            employee_id = self.e_page.curr_sel_employee
+            if employee_id != None and employee_id != "New Employee":
+                employee = self.e_page.get_employee(employee_id)
                 employee.first_name = f_name
                 employee.last_name = l_name
-                employee.employee_id = employee_id
+                employee.employee_id = new_e_id
                 employee.primary_department = self.dep1.get()
                 employee.alternate1_department = self.dep2.get()
                 employee.alternate2_department = self.dep3.get()
@@ -488,9 +552,9 @@ class EmployeeInfoForm(tk.Frame):
                 employee.workmans_comp = work_comp
                 employee.social_security = social   
                 self.session.commit()
-                self.e_page.update_e_list(employee)
-            elif employee == "New Employee": 
-                employee = Employees(employee_id, 
+                self.e_page.update_e_list(new_e_id)
+            elif employee_id == "New Employee": 
+                employee = Employees(new_e_id, 
                                      f_name, l_name,
                                      self.dep1.get(), 
                                      self.dep2.get(), 
@@ -503,7 +567,7 @@ class EmployeeInfoForm(tk.Frame):
                                      social)
                 self.session.add(employee)
                 self.session.commit()
-                self.e_page.update_e_list(employee)
+                self.e_page.update_e_list(new_e_id)
         else:
             print "Errors were: ", errors
             # Print out the errors in errors array onto an error label
@@ -512,23 +576,22 @@ class EmployeeInfoForm(tk.Frame):
             # set its values to the values in the data entry widgets
             # Then commit changes to the database
             
-            
-    # A function to test if an employee ID is already registered in the database
-    # If that ID is already taken, return true, else return false.
-    # That isn't really the issue I am trying to work out here, 
-    # the issue I am trying to work out is the case where:
-    # The user is trying to change the ID of an employee, 
+
     def employee_id_conflict(self, id):
-        # We first get potential employee with id and then any current selected employee
+        """Return true if there exists an employee id conflict.
+        
+        There is only a conflict if there is an employee with the supplied
+        id and that employee is not currently selected.
+        """
+        
         potential_employee = (self.session
                                   .query(Employees)
                                   .filter(Employees.employee_id == id)
                                   .first())
-        employee = self.e_page.curr_sel_employee
-        # Then check to see if there is a conflict in id
-        if potential_employee == None or potential_employee == employee: # Case where no employee already has this ID or the employee itself has the ID
+        employee_id = self.e_page.curr_sel_employee
+        if potential_employee == None or potential_employee.employee_id == employee_id:
             return False
-        else: # Case where an employee is already using this ID
+        else:
             return True
             
             
@@ -549,6 +612,13 @@ class EmployeeInfoForm(tk.Frame):
           
 
 class EmployeeRepeatUnavailable(tk.Frame):
+    """
+    Form for a user to enter in repeat unavailabilities
+    
+    EmployeeRepeatUnavailable is a composite widget consisting of time widgets
+    widgets to enter in a day of the week, and add and remove buttons. The
+    employee id for employee to be assigned is supplied by the controller.
+    """
 
     DAYS_TO_NUM = {'Sunday':6, 'Monday':0, 'Tuesday':1, 'Wednesday':2,
                     'Thursday':3, 'Friday':4, 'Saturday':5}
@@ -608,35 +678,37 @@ class EmployeeRepeatUnavailable(tk.Frame):
                                             state='readonly')
         self.unav_weekday_cb.grid(row=2, column=1)
         self.add_unav_day_b = ttk.Button(self.unav_add_frame, 
-                                            text='Add Unavailable Time', 
-                                            command=self.add_unav_time)
-                                                                                
+                                         text='Add Unavailable Time', 
+                                         command=self.add_unav_time)               
                                             
         self.add_unav_day_b.grid(row=3, column=0, columnspan=2, pady=16)     
         
         
-    def load_unav_times(self, employee):       
+    def load_unav_times(self, employee_id):       
         """Load past and future vacations associated with employee. """
         # Delete any previously displayed vacations for different employee
         self.unavailable_d_lb.delete(0, tk.END)
         self.unav_days = []
-        if employee != None and employee != "New Employee":
+        if employee_id != None and employee_id != "New Employee":
+            employee = self.e_page.get_employee(employee_id)
             self.unav_days = employee.get_unav_days()
             self.unav_days.sort(key=lambda v: v.start_time)
             self.unav_days.sort(key=lambda v: v.weekday)
-            # Load the parallel lists into listbox
             for u in self.unav_days:
-                self.unavailable_d_lb.insert(tk.END, 
-                                             u.get_str())
+                self.unavailable_d_lb.insert(tk.END, u.get_str())
+            self.unav_days = [u.id for u in self.unav_days]                                 
+            
             
     def remove_unav_time(self):
         if self.unavailable_d_lb.curselection() == ():
             return
-        index =  self.unavailable_d_lb.curselection()[0]
-        
+        index = self.unavailable_d_lb.curselection()[0]
         self.unavailable_d_lb.delete(index)
-        unav_time = self.unav_days[index]
         
+        unav_time_id = self.unav_days[index]
+        unav_time = (self.session.query(UnavailableTime)
+                                .filter(UnavailableTime.id == unav_time_id)
+                                .first())
         self.session.delete(unav_time)
         self.session.commit()
         
@@ -650,26 +722,33 @@ class EmployeeRepeatUnavailable(tk.Frame):
         weekday = self.DAYS_TO_NUM[self.unav_weekday_var.get()]
         
         if start_time < end_time:
-            employee = self.e_page.curr_sel_employee
-            if employee != None and employee != "New Employee":
+            employee_id = self.e_page.curr_sel_employee
+            if employee_id != None and employee_id != "New Employee":
 
                 unav_time = UnavailableTime(start_time, 
                                             end_time,
                                             weekday,
-                                            employee.id)
+                                            employee_id)
                 self.session.add(unav_time)
+                self.session.commit()
+                employee = self.e_page.get_employee(employee_id)
                 employee.add_unav_time(unav_time)
                 self.session.commit()
-                # EDIT: Insert needs to both apply to correct lb and
-                # keep everything sorted
+                # Insert newly added unavailable to listbox for display
                 self.unavailable_d_lb.insert(tk.END, 
                                              unav_time.get_str())
-                self.unav_days.append(unav_time)
+                self.unav_days.append(unav_time.id)
                
                
         
 class EmployeeVacations(tk.Frame):
-        
+    """
+    Form for a user to enter in employee vacations
+    
+    EmployeeVacations is a composite widget consisting of date widgets  to
+    enter the start and end dates of a vacation. The employee id for employee
+    to be assigned is supplied by the controller.
+    """ 
         
     def __init__(self, parent, session, e_page, calendar_page):
         tk.Frame.__init__(self, parent)
@@ -738,7 +817,7 @@ class EmployeeVacations(tk.Frame):
         self.add_vacation.grid(row=4, column=0, columnspan=2, pady=12)
          
         
-    def load_vacations(self, employee):
+    def load_vacations(self, employee_id):
         """Load past and future vacations associated with employee. """
         # Delete any previously displayed vacations for different employee
         self.future_v_lb.delete(0, tk.END)
@@ -749,7 +828,8 @@ class EmployeeVacations(tk.Frame):
         now = datetime.datetime.now()
         current_date = datetime.datetime(now.year, now.month, 1, 0, 0 ,0)
         vacations = []
-        if employee != None and employee != "New Employee":
+        if employee_id != None and employee_id != "New Employee":
+            employee = self.e_page.get_employee(employee_id)
             vacations = employee.get_absent_schedules()
             self.future_vacations = [v for v in vacations if v.end_datetime >= current_date]
             self.past_vacations = [v for v in vacations if v.end_datetime < current_date]
@@ -761,20 +841,12 @@ class EmployeeVacations(tk.Frame):
                 self.future_v_lb.insert(tk.END, v.get_str_dates())
             for v in self.past_vacations:
                 self.past_v_lb.insert(tk.END, v.get_str_dates())
+                
+            self.future_vacations = [v.id for v in self.future_vacations]
+            self.past_vacations = [v.id for v in self.past_vacations]
    
     
     def add_vacation(self):
-        # Step 0: Button is clicked to call this function
-        # Step 1: Create a string from the 
-        # spinbox values for start_date and end_date
-        # Step 2: create a Datetime.date() 
-        # Step 3: check to see if this date object 
-        # conflicts with any time schedules
-        # 	-If conflict: flag user via pop-up box and tell the 
-        #    datetime schedules that conflicts with 
-        #	 with desired schedule, then don't commit anything, end function
-        # 	-If no conflict: commit schedules to database,
-        #    add to listbox and parallel list
         
         start_tuple = self.start_date.get()
         s_year = int(start_tuple[2])
@@ -793,11 +865,12 @@ class EmployeeVacations(tk.Frame):
         
         if start_datetime <= end_datetime:
         
-            employee = self.e_page.curr_sel_employee
+            employee_id = self.e_page.curr_sel_employee
             
             conflicting_schedules = []
             
-            if employee != None and employee != "New Employee":
+            if employee_id != None and employee_id != "New Employee":
+                employee = self.e_page.get_employee(employee_id)
                 for t in employee.schedules:
                     if start_datetime < t.end_datetime and t.start_datetime < end_datetime:
                         conflicting_schedules.append(t)
@@ -808,15 +881,13 @@ class EmployeeVacations(tk.Frame):
                 if conflicting_schedules == []:
                     unavailable_schedule = Unavailable_Schedule(start_datetime, 
                                                                 end_datetime, 
-                                                                employee.id)
+                                                                employee_id)
                     self.session.add(unavailable_schedule)
                     employee.add_unavailable_schedule(unavailable_schedule)
                     self.session.commit()
-                    # EDIT: Insert needs to both apply to correct lb and
-                    # keep everything sorted
                     self.future_v_lb.insert(tk.END, 
                                             unavailable_schedule.get_str_dates())
-                    self.future_vacations.append(unavailable_schedule)
+                    self.future_vacations.append(unavailable_schedule.id)
                 else:
                     for e in conflicting_schedules:
                         print 'Confliction schedules are...'
@@ -836,7 +907,7 @@ class EmployeeVacations(tk.Frame):
             # printed list of all conflicing schedules. 
             # give option for user to delete 
             # conflicting schedules to add vacation day?
-    	
+            
         
     def remove_future_v(self):
         if self.future_v_lb.curselection() == ():
@@ -844,9 +915,13 @@ class EmployeeVacations(tk.Frame):
         index =  self.future_v_lb.curselection()[0]
         
         self.future_v_lb.delete(index)
-        un_schedule = self.future_vacations[index]
+        vacation_id = self.future_vacations[index]
+        vacation = (self.session.query(Unavailable_Schedule)
+                                .filter(Unavailable_Schedule.id == vacation_id)
+                                .first())
         
-        self.session.delete(un_schedule)
+        
+        self.session.delete(vacation)
         self.session.commit()
         
         del self.future_vacations[index]
@@ -857,9 +932,12 @@ class EmployeeVacations(tk.Frame):
         index = self.past_v_lb.curselection()[0]
         
         self.past_v_lb.delete(index)
-        un_schedule = self.past_vacations[index]
+        vacation_id = self.past_vacations[index]
+        vacation = (self.session.query(Unavailable_Schedule)
+                                .filter(Unavailable_Schedule.id == vacation_id)
+                                .first())
         
-        self.session.delete(un_schedule)
+        self.session.delete(vacation)
         self.session.commit()
         
         del self.past_vacations[index]
