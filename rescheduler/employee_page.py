@@ -28,15 +28,13 @@ class EmployeePage(tk.Frame):
     widgets talk to each other and to know the current selected employee.
     """
     
-    def __init__(self, parent, session, calendar_page):
+    def __init__(self, parent, session):
         """
         Initialize EmployeePage and the different composite widgets
         """
         
         tk.Frame.__init__(self, parent)
-        
         self.session = session
-        self.cal = calendar_page
         self.curr_sel_employee = None
         
         # Left Panel Frame Widgets for Employee/Department Lists
@@ -46,12 +44,12 @@ class EmployeePage(tk.Frame):
         
         self.employee_list_frame = tk.Frame(employee_department_nb)
         self.employee_list_frame.pack()
-        self.employee_list = EmployeeList(self.employee_list_frame, session, self, calendar_page)
+        self.employee_list = EmployeeList(self.employee_list_frame, session, self)
         self.employee_list.pack()
         
         self.dep_list_frame = tk.Frame(employee_department_nb)
         self.dep_list_frame.pack()
-        self.dep_list = DepartmentList(self.dep_list_frame, session, calendar_page)
+        self.dep_list = DepartmentList(self.dep_list_frame, session)
         self.dep_list.pack()
 
         employee_department_nb.add(self.employee_list_frame, text="Employee List")
@@ -64,7 +62,7 @@ class EmployeePage(tk.Frame):
         self.employee_info_frame.pack(side="left", fill="both", expand=True,
                                       padx=10, pady=24, anchor='center')
         self.e_info_form = EmployeeInfoForm(self.employee_info_frame, session,
-                                            self, calendar_page)     
+                                            self)     
         self.e_info_form.pack()
                              
 
@@ -77,7 +75,7 @@ class EmployeePage(tk.Frame):
         self.repeat_unav_frame.pack(side="left", fill="both", expand=True,
                                       padx=10, pady=24, anchor='center')                            
         self.e_unav_form = EmployeeRepeatUnavailable(self.repeat_unav_frame, 
-                                                session, self, calendar_page) 
+                                                session, self) 
         self.e_unav_form.pack()                                        
                                       
                                       
@@ -85,7 +83,7 @@ class EmployeePage(tk.Frame):
         self.vacation_frame.pack(side="left", fill="both", expand=True,
                                       padx=10, pady=24, anchor='center')
         self.e_vacation_form = EmployeeVacations(self.vacation_frame, 
-                                            session, self, calendar_page)  
+                                            session, self)  
         self.e_vacation_form.pack()
         
         self.unavailability_nb.add(self.repeat_unav_frame, 
@@ -108,9 +106,11 @@ class EmployeePage(tk.Frame):
         self.e_unav_form.load_unav_times(employee_id)
         self.e_vacation_form.load_vacations(employee_id)
         
+        
     def update_e_list(self, employee_id):
         """Update list of employees in employee listbox."""
         self.employee_list.update_listbox(employee_id)
+        
         
     def add_new_e_info(self):
         """Fill in employee info form as a new employee."""
@@ -130,16 +130,13 @@ class EmployeeList(tk.Frame):
     
     employee_id_list = []
         
-    def __init__(self, parent, session, e_page, calendar_page):
-        """
-        Initialize EmployeeList widgets, load employees
-        """
+    def __init__(self, parent, session, e_page):
+        """Initialize EmployeeList widgets, load employees."""
     
         tk.Frame.__init__(self, parent)
         
         self.session = session
         self.e_page = e_page
-        self.cal = calendar_page
         
         # Create and load listbox and its parallel list
         self.employee_listbox = tk.Listbox(self, 
@@ -259,48 +256,48 @@ class DepartmentList(tk.Frame):
     DepartmentList loads all departments and displays them. It also contains 
     two buttons to add and remove departments.
     """
-
-    def __init__(self, parent, session, calendar_page):
-        tk.Frame.__init__(self, parent)
     
+    dep_list = []
+
+    def __init__(self, parent, session):
+        """Initialize DepartmentList widgets, load departments and fill lb."""
+        tk.Frame.__init__(self, parent)
         self.session = session
-        self.cal = calendar_page
-        
-        
-        
+
         self.department_listbox = tk.Listbox(self, 
                                              height=6, width=25, 
                                              font=('Tahoma', 14, tk.NORMAL))
         self.department_listbox.grid(row=11, column=0, 
                                      rowspan=6, columnspan=3,
                                      pady=8)
-
-        for d in self.cal.dep_list:
+        
+        self.dep_list = [d.name for d in session.query(Department).all()]
+        for d in self.dep_list:
             self.department_listbox.insert(tk.END, d)
         
         self.add_department_button = ttk.Button(self, 
                                                text='Add Department', 
                                                command=self.add_department)
         self.add_department_button.grid(row=20, column=0)
-        self.remove_department_button = ttk.Button(self, 
-                                                  text='Remove Department', 
-                                                  command=self.remove_department)
-        self.remove_department_button.grid(row=20, column=2)
-        
         self.add_dep_label = tk.Label(self, 
                                       text="New Department:", 
                                       font=('Tahoma', 14, tk.NORMAL))
         self.add_dep_label.grid(row=21, column=0, columnspan=2)
         
         self.dep_name = tk.StringVar(self)
-        #self.dep_name.set("New Department Name")
         self.dep_entry = ttk.Entry(self, 
                                   font=('Tahoma', 14, tk.NORMAL), 
                                   textvariable=self.dep_name)
         self.dep_entry.grid(row=21, column=2)
         
+        self.remove_department_button = ttk.Button(self, 
+                                                  text='Remove Department', 
+                                                  command=self.remove_department)
+        self.remove_department_button.grid(row=20, column=2)
+        
         
     def add_department(self):
+        """Add department from listbox and database."""
         dep = Department(self.dep_name.get())
         self.session.add(dep)
         self.session.commit()
@@ -310,22 +307,18 @@ class DepartmentList(tk.Frame):
         
         
     def remove_department(self):
+        """Remove department from listbox and database."""
         if self.department_listbox.curselection() == ():
             return
         index = self.department_listbox.curselection()[0]
         dep_str = self.department_listbox.get(index)
-        # EDIT: This should be a Try/Except structure, throw error
         db_department = (self.session.query(Department)
                                      .filter(Department.name == dep_str)
                                      .first())
         self.session.delete(db_department)
         self.session.commit()
-        # 1 - Find corresponding db department object
-        # 2 - Delete it
-        # 3 - Delete corresponding element in self.cal.dep_list
         self.department_listbox.delete(index)
         del self.cal.dep_list[index]
-        # 4 - Delete listbox element
         self.cal.d['menu'].delete(index)
         
                    
@@ -341,12 +334,12 @@ class EmployeeInfoForm(tk.Frame):
     the database.
     """
 
-    def __init__(self, parent, session, e_page, calendar_page):
+    def __init__(self, parent, session, e_page):
+        """Init widgets to display employee information and save button."""
         tk.Frame.__init__(self, parent)
         
         self.session = session
         self.e_page = e_page
-        self.cal = calendar_page
           
         # First name widgets
         self.f_name_var = tk.StringVar(self)
@@ -471,12 +464,10 @@ class EmployeeInfoForm(tk.Frame):
         self.save_button.grid(row=15, column=1, sticky=tk.W)
         
         
-        
     def load_employee_form(self, employee_id):
-        # Case where employee is already in database
+        """Load employee information into the various fields."""
         if employee_id != None and employee_id != "New Employee":
             employee = self.e_page.get_employee(employee_id)
-            # Then edit all employee info widgets to represent the database data
             self.f_name_var.set(employee.first_name)
             self.l_name_var.set(employee.last_name)
             self.e_id.set(employee.employee_id)
@@ -489,29 +480,20 @@ class EmployeeInfoForm(tk.Frame):
             self.work_comp_var.set(employee.workmans_comp)
             self.soc_sec_var.set(employee.social_security)
             self.medical_var.set(employee.medical)
-        # Case where employe in the list has not yet been added to database
         else:
-            self.f_name_var.set("New Employee")
-            self.l_name_var.set("")
-            self.e_id.set(0)
-            self.e_wage.set("7.5")
-            self.d_hours.set("48")
-            self.dep1.set("None")
-            self.dep2.set("None")
-            self.dep3.set("None")
-            self.ovrt_var.set("40")
-            self.work_comp_var.set("50")
-            self.soc_sec_var.set("7.5")
-            self.medical_var.set("0")
-
-            
-            
-            
-            
-    # Should add functionality where if a name change is committed, we change the listbox
-    # index changes as well...Also error of multiple selections when adding an employee
+            add_new_e_info()
+          
+    
     def save_employee_info(self):
-        # Before committing any changes to the database we check if certain data fields have valid entries
+        """Save information in fields to employee in database.
+        
+        First the method checks to make sure valid entries were supplied for
+        the values. Then the method commits these values to the employee in 
+        the database. If the controller says the current employee is 
+        "New Employee", then this method creates a new employee in database
+        then tells the controller to update the EmployeeList.
+        """
+        
         errors = []
         f_name = self.f_name_var.get()
         if not isinstance(f_name, basestring):
@@ -570,11 +552,7 @@ class EmployeeInfoForm(tk.Frame):
                 self.e_page.update_e_list(new_e_id)
         else:
             print "Errors were: ", errors
-            # Print out the errors in errors array onto an error label
-            	
-            # Then once we have a reference to an Employee instance, 
-            # set its values to the values in the data entry widgets
-            # Then commit changes to the database
+            # Replace with warning dialog
             
 
     def employee_id_conflict(self, id):
@@ -596,6 +574,7 @@ class EmployeeInfoForm(tk.Frame):
             
             
     def add_new_e_info(self):
+        """Fill out employee info widgets with new employee default values."""
         self.f_name_var.set("New Employee")
         self.l_name_var.set("")
         self.e_id.set(0)
@@ -620,23 +599,20 @@ class EmployeeRepeatUnavailable(tk.Frame):
     employee id for employee to be assigned is supplied by the controller.
     """
 
+    self.unav_days = []
     DAYS_TO_NUM = {'Sunday':6, 'Monday':0, 'Tuesday':1, 'Wednesday':2,
                     'Thursday':3, 'Friday':4, 'Saturday':5}
 
-    def __init__(self, parent, session, e_page, calendar_page):
+    def __init__(self, parent, session, e_page):
+        """Initialize widgets for adding and removing repeat unavailabilities."""
         tk.Frame.__init__(self, parent)
     
         self.session = session
         self.e_page = e_page
-        self.cal = calendar_page
         
-        
-        # Unavailable day widgets
         self.unavailable_d_lb = tk.Listbox(self, height=18, width=30, 
                                            font=('Tahoma', 12, tk.NORMAL))
         self.unavailable_d_lb.pack(pady=16)
-        # Parallel list to listbox
-        self.unav_days = []
         
         self.remove_unav_day_b = ttk.Button(self, 
                                             text='Remove Unavailable Time',
@@ -685,8 +661,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
         
         
     def load_unav_times(self, employee_id):       
-        """Load past and future vacations associated with employee. """
-        # Delete any previously displayed vacations for different employee
+        """Load repeat unavailabilities associated with employee."""
         self.unavailable_d_lb.delete(0, tk.END)
         self.unav_days = []
         if employee_id != None and employee_id != "New Employee":
@@ -700,6 +675,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
             
             
     def remove_unav_time(self):
+        """Remove repeat unavailability clicked from listbox."""
         if self.unavailable_d_lb.curselection() == ():
             return
         index = self.unavailable_d_lb.curselection()[0]
@@ -715,8 +691,8 @@ class EmployeeRepeatUnavailable(tk.Frame):
         del self.unav_days[index]
         
         
-        
     def add_unav_time(self):
+        """Add repeat unavailability to listbox and database."""
         start_time = self.unav_start_te.get_time()
         end_time = self.unav_end_te.get_time()
         weekday = self.DAYS_TO_NUM[self.unav_weekday_var.get()]
@@ -750,13 +726,11 @@ class EmployeeVacations(tk.Frame):
     to be assigned is supplied by the controller.
     """ 
         
-    def __init__(self, parent, session, e_page, calendar_page):
+    def __init__(self, parent, session, e_page):
+        """Initialize widgets for adding and removing vacations."""
         tk.Frame.__init__(self, parent)
-    
         self.session = session
         self.e_page = e_page
-        self.cal = calendar_page
-        
         
         # Vacation and Absent Schedules
         self.future_past_nb = ttk.Notebook(self)
@@ -792,7 +766,6 @@ class EmployeeVacations(tk.Frame):
         self.remove_past_v_btn.pack(pady=16)
         
         # Widgets for adding a vacation time
-        # Date spinbox widgets for user to pick date for vacations
         self.start_date_label = tk.Label(self, 
                                          text="Start Date ", 
                                          font=('Tahoma', 12, tk.NORMAL))
@@ -818,13 +791,11 @@ class EmployeeVacations(tk.Frame):
          
         
     def load_vacations(self, employee_id):
-        """Load past and future vacations associated with employee. """
-        # Delete any previously displayed vacations for different employee
+        """Load past and future vacations associated with employee."""
         self.future_v_lb.delete(0, tk.END)
         self.past_v_lb.delete(0, tk.END)
         self.future_vacations = []
         self.past_vacations = []
-        # Fetch current date to compare the time of schedules to be displayed
         now = datetime.datetime.now()
         current_date = datetime.datetime(now.year, now.month, 1, 0, 0 ,0)
         vacations = []
@@ -836,17 +807,24 @@ class EmployeeVacations(tk.Frame):
         
             self.future_vacations.sort(key=lambda v: v.start_datetime)
             self.past_vacations.sort(key=lambda v: v.start_datetime)
-            # Load the parallel lists into respect listboxes
             for v in self.future_vacations:
                 self.future_v_lb.insert(tk.END, v.get_str_dates())
             for v in self.past_vacations:
                 self.past_v_lb.insert(tk.END, v.get_str_dates())
-                
+            # We shed the ORM representation and keep parallel list of id's
             self.future_vacations = [v.id for v in self.future_vacations]
             self.past_vacations = [v.id for v in self.past_vacations]
    
     
     def add_vacation(self):
+        """Add vacation to selected employee, warn user if conflicts exist.
+        
+        add_vacation checks for any conflicts with schedules they are already
+        assigned to. If there is any time overlap between the vacation to be
+        assigned to employee and schedules that employee is already assigned to
+        the user is warned and given a dialog box to ask them if they are sure
+        they want to assign the vacation to the employee.
+        """
         
         start_tuple = self.start_date.get()
         s_year = int(start_tuple[2])
@@ -873,11 +851,7 @@ class EmployeeVacations(tk.Frame):
                 employee = self.e_page.get_employee(employee_id)
                 for t in employee.schedules:
                     if start_datetime < t.end_datetime and t.start_datetime < end_datetime:
-                        conflicting_schedules.append(t)
-                for t in employee.unavailable_schedules:
-                    if start_datetime < t.end_datetime and t.start_datetime < end_datetime:
-                        conflicting_schedules.append(t)
-                        
+                        conflicting_schedules.append(t)   
                 if conflicting_schedules == []:
                     unavailable_schedule = Unavailable_Schedule(start_datetime, 
                                                                 end_datetime, 
@@ -892,24 +866,14 @@ class EmployeeVacations(tk.Frame):
                     for e in conflicting_schedules:
                         print 'Confliction schedules are...'
                         print e
-                        # display errors in some sort of box, give option for 
-                        # user to delete conflicting schedules? I almost want to say no...
-                        # Then again, the purpose of this program 
-                        # is to streamline retail scheduling...
-                        # Should call another function because 
-                        # there will be a lot of logic here
+                        # Replace with warning dialog
             else:
                 print "Please select an employee already in Database"
-                # print out errors, need a valid employee etc.
+                # Replace with warning dialog
                 
-            
-            # else display error box containing a 
-            # printed list of all conflicing schedules. 
-            # give option for user to delete 
-            # conflicting schedules to add vacation day?
-            
         
     def remove_future_v(self):
+        """Remove vacation from future listbox and database."""
         if self.future_v_lb.curselection() == ():
             return
         index =  self.future_v_lb.curselection()[0]
@@ -926,7 +890,9 @@ class EmployeeVacations(tk.Frame):
         
         del self.future_vacations[index]
         
+        
     def remove_past_v(self):
+        """Remove vacation from past listbox and database."""
         if self.past_v_lb.curselection() == ():
             return
         index = self.past_v_lb.curselection()[0]

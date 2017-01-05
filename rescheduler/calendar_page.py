@@ -69,8 +69,7 @@ class ReScheduler:
         # Employee page widgets                              
         self.employee_page_frame = ttk.Frame(n)
         self.employee_page = EmployeePage(self.employee_page_frame, 
-                                          session,
-                                          self.calendar)
+                                          session)
         self.employee_page.pack()
         # Sales page widgets
         self.sales_page_frame = ttk.Frame(n)
