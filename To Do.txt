@@ -28,25 +28,25 @@ To Do General List: (* Are probably easy changes)
 1) Fix issue with different month getting same value as current month
 2) Encapsualte tk style in dict?
 3) Overhaul save/load/add/remove employee functions for better design: MVC?
-4) Fix session collection issue: employee object being updated in multiple areas?
-5) Make export to excel work well: no need for template
-6) Add in warning dialogues
-7) Fix autofill
-8) Fix updating department list displaying when adding a new department
-9) Make schedule.department actually linked to db_department, not just string:
+4) Make export to excel work well: no need for template
+5) Add in warning dialogues
+6) Fix autofill
+7) Fix updating department list displaying when adding a new department
+8) Make schedule.department actually linked to db_department, not just string:
     -Department optionmenu's reflect database departments, not pre-determined
      strings.
-10) Is it possible to associate text values in listbox with a StringVar?
-11) Clear employee info if employee is removed
+9) Is it possible to associate text values in listbox with a StringVar?
+10) Clear employee info if employee is removed
     -Also put widgets in disabled state when no employee clicked?
-12) Fix date entry class: bugs with deletion
-13) Change instantiated calendar upon starting program to be next month 
+11) Fix date entry class: bugs with deletion
+12) Change instantiated calendar upon starting program to be next month 
     of current datetime.datetime.now() month
-14) Redesign calc_widgets to be more efficient: 1 Query to DB then process?
-15*) Get some type of regex for day_widget title in schedule area
-16*) Add optional arg to TimeEntry for setting default values: kwargs?
-17*) Change application icon
-18) Refactor into MVC design: CalendarCalc, EmployeePage, SalesPage
+13) Redesign calc_widgets to be more efficient: 1 Query to DB then process?
+14*) Get some type of regex for day_widget title in schedule area
+15*) Add optional arg to TimeEntry for setting default values: kwargs?
+16*) Change application icon
+17) Refactor into MVC design: CalendarCalc, EmployeePage, SalesPage
+18) Make add_vacation, add_repeat insert new item in sorted order, not at end
 
 
 
