@@ -1,15 +1,95 @@
+"""
+Module for date and time widgets and functions
+"""
+
 import Tkinter as tk
 import ttk
 import datetime
+      
 
-"""
-Date Entry was found at:
-http://stackoverflow.com/questions/13242970/tkinter-entry-box-formatted-for-date/13243973
-By user:
-http://stackoverflow.com/users/1795505/pydsigner
-"""
+      
+def yearify(curr_year, n):
+        """Return a string list of n+5 years starting 4 years before curr_year.
+        
+        Args:
+            curr_year: string representation of present year
+            n: number of years after present year desired to be in list
+        """
+        
+        year_list = []
+        start_year = int(curr_year) - 4
+        
+        for i in range(start_year, start_year + n + 5):
+            year_list.append(str(i))
+           
+        return year_list
+         
+         
+        
+class TimeEntry(tk.Frame):
+    """Composite widget class to represent and manipulate time.
+    
+    Time entry allows the user to select hours (Up to 12), 15 minute interval 
+    selection, along with choosing meridiem (AM/PM). 
+    """
 
+    def __init__(self, parent):
+        """Initialize various optionmenu widgets for selecting time."""
+        tk.Frame.__init__(self, parent)
+    
+        self.hour_var = tk.StringVar(self)
+        self.hour_var.set("9")
+        self.hour_cb = ttk.Combobox(self, 
+                                   textvariable=self.hour_var,
+                                   values=("1", "2", "3", "4", "5", "6", 
+                                           "7", "8", "9", "10", "11", "12"),
+                                   width=2,
+                                   state='readonly')
+        self.hour_cb.pack(side=tk.LEFT)
+        self.min_var = tk.StringVar(self)
+        self.min_var.set("00")
+        self.min_cb = ttk.Combobox(self, 
+                                   textvariable=self.min_var,
+                                   values=("00", "15", "30", "45"),
+                                   width=3,
+                                   state='readonly')
+        self.min_cb.pack(side=tk.LEFT)
+        self.meridiem_var = tk.StringVar(self)
+        self.meridiem_var.set("AM")
+        self.meridiem_cb = ttk.Combobox(self, 
+                                        textvariable=self.meridiem_var,
+                                        values=("AM", "PM"),
+                                        width=3,
+                                        state='readonly')
+        self.meridiem_cb.pack(side=tk.LEFT)
+        
+        
+    def get(self):
+        """Return a 3-element tuple of strings: (hour, minute, meridiem)."""
+        return self.hour_var.get(), self.min_var.get(), self.meridiem_var.get()
+        
+        
+    def get_time(self):
+        """Return a datetime.time() object representing selected values."""
+        hour = int(self.hour_var.get())
+        if self.meridiem_var.get() == "PM":
+            hour += 12
+        min = int(self.min_var.get())
+        
+        return datetime.time(hour, min)
+        
+        
+        
 class DateEntry(tk.Frame):
+    """
+    Date Entry was found at:
+    http://stackoverflow.com/questions/13242970/tkinter-entry-box-formatted-for-date/13243973
+    By user:
+    http://stackoverflow.com/users/1795505/pydsigner
+    
+    Basic composite widget representing a date in DD/MM/YYYY format.
+    """
+
     def __init__(self, master, frame_look={}, **look):
         args = dict(relief=tk.SUNKEN, border=1)
         args.update(frame_look)
@@ -62,68 +142,5 @@ class DateEntry(tk.Frame):
 
     def get(self):
         return self.entry_1.get(), self.entry_2.get(), self.entry_3.get()
-        
-         
-        
-class TimeEntry(tk.Frame):
 
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-    
-        self.hour_var = tk.StringVar(self)
-        self.hour_var.set("9")
-        self.hour_cb = ttk.Combobox(self, 
-                                   textvariable=self.hour_var,
-                                   values=("1", "2", "3", "4", "5", "6", 
-                                           "7", "8", "9", "10", "11", "12"),
-                                   width=2,
-                                   state='readonly')
-        self.hour_cb.pack(side=tk.LEFT)
-        self.min_var = tk.StringVar(self)
-        self.min_var.set("00")
-        self.min_cb = ttk.Combobox(self, 
-                                   textvariable=self.min_var,
-                                   values=("00", "15", "30", "45"),
-                                   width=3,
-                                   state='readonly')
-        self.min_cb.pack(side=tk.LEFT)
-        self.meridiem_var = tk.StringVar(self)
-        self.meridiem_var.set("AM")
-        self.meridiem_cb = ttk.Combobox(self, 
-                                        textvariable=self.meridiem_var,
-                                        values=("AM", "PM"),
-                                        width=3,
-                                        state='readonly')
-        self.meridiem_cb.pack(side=tk.LEFT)
         
-        
-    def get(self):
-        return self.hour_var.get(), self.min_var.get(), self.meridiem_var.get()
-        
-        
-    def get_time(self):
-        """Return a datetime.time() object representing selected values """
-        hour = int(self.hour_var.get())
-        if self.meridiem_var.get() == "PM":
-            hour += 12
-        min = int(self.min_var.get())
-        
-        return datetime.time(hour, min)
-        
-        
-        
-def yearify(curr_year, n):
-        """Return a string list of n+5 years starting 4 years before curr_year.
-        
-        Args:
-            curr_year: string representation of present year
-            n: number of years after present year desired to be in list
-        """
-        
-        year_list = []
-        start_year = int(curr_year) - 4
-        
-        for i in range(start_year, start_year + n + 5):
-            year_list.append(str(i))
-           
-        return year_list
