@@ -9,22 +9,17 @@ Pythonisize Code:
     -Check import style guides and make pythonic
     -Make sure conditionals are pythonic: 
         Save method test should have better type checking idioms
-    -Perhaps simplify deleting methods
-    -Inherit from object for classes? Inherit tk.Frame, etc.
     -Get rid of calls to constants like DAY, replace with library:
         -MONTHS
         -DAYS
         -Letters for version: alphabet
 2) Get rid of main module, or turn into __init__?
 3) Add in scrollbars to schedule editor and listboxes on employee page
-4) Maybe fix reference nightmare: calendar_menu has to go through page to get
-   to display, multiple calls to update_cost, instead of directly: observers?
-    -Failure to create controller for UI?
 
 
 
 
-To Do General List: (* Are probably easy changes)
+To Do General List:
 1) Fix issue with different month getting same value as current month
 2) Encapsualte tk style in dict?
 3) Overhaul save/load/add/remove employee functions for better design: MVC?
@@ -35,18 +30,14 @@ To Do General List: (* Are probably easy changes)
 8) Make schedule.department actually linked to db_department, not just string:
     -Department optionmenu's reflect database departments, not pre-determined
      strings.
-9) Is it possible to associate text values in listbox with a StringVar?
-10) Clear employee info if employee is removed
+9) Clear employee info if employee is removed
     -Also put widgets in disabled state when no employee clicked?
-11) Fix date entry class: bugs with deletion
-12) Change instantiated calendar upon starting program to be next month 
+10) Change instantiated calendar upon starting program to be next month 
     of current datetime.datetime.now() month
-13) Redesign calc_widgets to be more efficient: 1 Query to DB then process?
-14*) Get some type of regex for day_widget title in schedule area
-15*) Add optional arg to TimeEntry for setting default values: kwargs?
-16*) Change application icon
-17) Refactor into MVC design: CalendarCalc, EmployeePage, SalesPage
-18) Make add_vacation, add_repeat insert new item in sorted order, not at end
+11) Redesign calc_widgets to be more efficient: 1 Query to DB then process?
+12) Add optional arg to TimeEntry for setting default values: kwargs?
+13) Change application icon
+14) Make add_vacation, add_repeat insert new item in sorted order, not at end
 
 
 
