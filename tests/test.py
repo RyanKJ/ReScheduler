@@ -28,9 +28,9 @@ def create_employee(session, id, f_name="John", l_name="Doe", p_dep="Front",
                     alt1_dep="None", alt2_dep="None", wage="9.5", d_hours="40",
                     overtime="48", medical="0", work_comp="50", social_s="7.5"):
     """Create employee object, commit and return created employee."""     
-    employee = orm.Employees(id, f_name, l_name, p_dep, alt1_dep, alt2_dep,
-                             wage, d_hours, overtime, medical, work_comp, 
-                             social_s)                            
+    employee = orm.Employee(id, f_name, l_name, p_dep, alt1_dep, alt2_dep,
+                            wage, d_hours, overtime, medical, work_comp, 
+                            social_s)                            
     session.add(employee)
     session.commit()
                    
@@ -40,7 +40,7 @@ def create_employee(session, id, f_name="John", l_name="Doe", p_dep="Front",
 def create_schedule(session, start_dt, end_dt, dep,
                     s_undet=False, e_undet=False):
     """Create schedule object, commit and return created schedule."""
-    schedule = orm.DB_Schedule(start_dt, end_dt, s_undet, e_undet, dep)                           
+    schedule = orm.Schedule(start_dt, end_dt, s_undet, e_undet, dep)                           
     session.add(schedule)
     session.commit()
                    
@@ -61,7 +61,7 @@ def remove_schedule(session, schedule):
     
 def create_vacation(session, start_dt, end_dt, employee_id):
     """Create schedule object, commit and return created schedule."""
-    vacation = orm.Unavailable_Schedule(start_dt, end_dt, employee_id)                           
+    vacation = orm.Vacation(start_dt, end_dt, employee_id)                           
     session.add(vacation)
     session.commit()
                    
@@ -179,7 +179,7 @@ class AvailabilityTest(unittest.TestCase):
         set up requied to create the employee and department.
         """
         
-        self.session = orm.start_db('33', True)
+        self.session = orm.start_db('35', True)
                  
         self.department = create_department(self.session, 'Front')
         self.employee = create_employee(self.session, 'Bob')
@@ -194,7 +194,7 @@ class AvailabilityTest(unittest.TestCase):
         
     def tearDown(self):
         """Remove everything from the database."""
-        employees = self.session.query(orm.Employees).all()
+        employees = self.session.query(orm.Employee).all()
         for e in employees:
             self.session.delete(e)
         
@@ -202,11 +202,11 @@ class AvailabilityTest(unittest.TestCase):
         for d in departments:
             self.session.delete(d)
 
-        schedules = self.session.query(orm.DB_Schedule)
+        schedules = self.session.query(orm.Schedule)
         for s in schedules:
             self.session.delete(s)
             
-        vacations = self.session.query(orm.Unavailable_Schedule)
+        vacations = self.session.query(orm.Vacation)
         for v in vacations:
             self.session.delete(v)
             
@@ -364,7 +364,7 @@ class GetEligablesTest(unittest.TestCase):
         'availability'. For get_eligables, availability is defied 
         """
         
-        self.session = orm.start_db('33', True)
+        self.session = orm.start_db('35', True)
                  
         self.dep1 = create_department(self.session, 'Front')
         self.dep2 = create_department(self.session, 'Designer')
@@ -446,7 +446,7 @@ class GetEligablesTest(unittest.TestCase):
      
     def tearDown(self):
         """Remove everything from the database."""
-        employees = self.session.query(orm.Employees).all()
+        employees = self.session.query(orm.Employee).all()
         for e in employees:
             self.session.delete(e)
         
@@ -454,11 +454,11 @@ class GetEligablesTest(unittest.TestCase):
         for d in departments:
             self.session.delete(d)
 
-        schedules = self.session.query(orm.DB_Schedule)
+        schedules = self.session.query(orm.Schedule)
         for s in schedules:
             self.session.delete(s)
             
-        vacations = self.session.query(orm.Unavailable_Schedule)
+        vacations = self.session.query(orm.Vacation)
         for v in vacations:
             self.session.delete(v)
             
