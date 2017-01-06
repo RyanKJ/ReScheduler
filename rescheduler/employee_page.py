@@ -91,8 +91,8 @@ class EmployeePage(tk.Frame):
                   
     def get_employee(self, id):
         """Return employee in database given employee id."""
-        employee = (self.session.query(Employees)
-                                .filter(Employees.employee_id == id)
+        employee = (self.session.query(Employee)
+                                .filter(Employee.employee_id == id)
                                 .first())
         return employee
         
@@ -161,7 +161,7 @@ class EmployeeList(tk.Frame):
         
     def load_listbox_and_parallel_list(self):
         """Load listbox of employee names and parallel list of employee_id."""
-        employee_db_list = self.session.query(Employees).all()
+        employee_db_list = self.session.query(Employee).all()
         employee_db_list.sort(key=lambda e: e.first_name)
         
         for e in employee_db_list:
@@ -533,17 +533,17 @@ class EmployeeInfoForm(tk.Frame):
                 self.session.commit()
                 self.e_page.update_e_list(new_e_id)
             elif employee_id == "New Employee": 
-                employee = Employees(new_e_id, 
-                                     f_name, l_name,
-                                     self.dep1.get(), 
-                                     self.dep2.get(), 
-                                     self.dep3.get(),
-                                     wage_value, 
-                                     self.d_hours.get(),
-                                     o_time,
-                                     medical_value,
-                                     work_comp, 
-                                     social)
+                employee = Employee(new_e_id, 
+                                    f_name, l_name,
+                                    self.dep1.get(), 
+                                    self.dep2.get(), 
+                                    self.dep3.get(),
+                                    wage_value, 
+                                    self.d_hours.get(),
+                                    o_time,
+                                    medical_value,
+                                    work_comp, 
+                                    social)
                 self.session.add(employee)
                 self.session.commit()
                 self.e_page.update_e_list(new_e_id)
@@ -560,8 +560,8 @@ class EmployeeInfoForm(tk.Frame):
         """
         
         potential_employee = (self.session
-                                  .query(Employees)
-                                  .filter(Employees.employee_id == id)
+                                  .query(Employee)
+                                  .filter(Employee.employee_id == id)
                                   .first())
         employee_id = self.e_page.curr_sel_employee
         if potential_employee == None or potential_employee.employee_id == employee_id:
@@ -850,15 +850,14 @@ class EmployeeVacations(tk.Frame):
                     if start_datetime < t.end_datetime and t.start_datetime < end_datetime:
                         conflicting_schedules.append(t)   
                 if conflicting_schedules == []:
-                    unavailable_schedule = Unavailable_Schedule(start_datetime, 
-                                                                end_datetime, 
-                                                                employee_id)
-                    self.session.add(unavailable_schedule)
-                    employee.add_unavailable_schedule(unavailable_schedule)
+                    vacation = Vacation(start_datetime, end_datetime, 
+                                        employee_id)
+                    self.session.add(vacation)
+                    employee.add_unavailable_schedule(vacation)
                     self.session.commit()
                     self.future_v_lb.insert(tk.END, 
-                                            unavailable_schedule.get_str_dates())
-                    self.future_vacations.append(unavailable_schedule.id)
+                                            vacation.get_str_dates())
+                    self.future_vacations.append(vacation.id)
                 else:
                     for e in conflicting_schedules:
                         print 'Confliction schedules are...'
@@ -877,8 +876,8 @@ class EmployeeVacations(tk.Frame):
         
         self.future_v_lb.delete(index)
         vacation_id = self.future_vacations[index]
-        vacation = (self.session.query(Unavailable_Schedule)
-                                .filter(Unavailable_Schedule.id == vacation_id)
+        vacation = (self.session.query(Vacation)
+                                .filter(Vacation.id == vacation_id)
                                 .first())
         
         
@@ -896,8 +895,8 @@ class EmployeeVacations(tk.Frame):
         
         self.past_v_lb.delete(index)
         vacation_id = self.past_vacations[index]
-        vacation = (self.session.query(Unavailable_Schedule)
-                                .filter(Unavailable_Schedule.id == vacation_id)
+        vacation = (self.session.query(Vacation)
+                                .filter(Vacation.id == vacation_id)
                                 .first())
         
         self.session.delete(vacation)

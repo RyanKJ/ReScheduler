@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker, relationship, backref
 
 Base = declarative_base()
 
-class DB_Schedule(Base):
+class Schedule(Base):
     """ORM representation of an employee schedule
     
     A schedule has a start and end datetime to represent its duration. Each
@@ -37,9 +37,9 @@ class DB_Schedule(Base):
     s_undetermined_time = Column(Boolean)
     e_undetermined_time = Column(Boolean)
     
-    employee_id = Column(Integer, ForeignKey('Employees.employee_id'), 
+    employee_id = Column(Integer, ForeignKey('Employee.employee_id'), 
                          nullable = True)
-    employee = relationship('Employees')
+    employee = relationship('Employee')
     
     def __init__(self, start_dt, end_dt, s_undetermined, e_undetermined, 
                  department):
@@ -71,7 +71,7 @@ class DB_Schedule(Base):
 
 
     
-class Unavailable_Schedule(Base):
+class Vacation(Base):
     """ORM representation of a vacation period with start and end date.
     
     A vacation is represented as two datetime.dates that represent the start
@@ -85,9 +85,9 @@ class Unavailable_Schedule(Base):
     start_datetime = Column(DateTime, default=datetime.datetime.utcnow)
     end_datetime = Column(DateTime, default=datetime.datetime.utcnow)
     
-    employee_id = Column(Integer, ForeignKey('Employees.employee_id'),
+    employee_id = Column(Integer, ForeignKey('Employee.employee_id'),
                          nullable = True)
-    employee = relationship('Employees')
+    employee = relationship('Employee')
     
     def __init__(self, start_datetime, end_datetime, employee_id):
         """Initialize a Vacation ORM object."""
@@ -122,9 +122,9 @@ class UnavailableTime(Base):
     end_time = Column(Time)
     weekday = Column(Integer)
     
-    employee_id = Column(Integer, ForeignKey('Employees.employee_id'),
+    employee_id = Column(Integer, ForeignKey('Employee.employee_id'),
                          nullable = True)
-    employee = relationship('Employees')
+    employee = relationship('Employee')
     
     def __init__(self, start_time, end_time, weekday, employee_id):
         """Initialize a repeating unavailability ORM object."""
@@ -142,7 +142,7 @@ class UnavailableTime(Base):
         
         
         
-class Employees(Base):
+class Employee(Base):
     """ORM representation of an employee.
     
     An employee is primarily represented by their employee_id which must be
@@ -153,7 +153,7 @@ class Employees(Base):
     an employee can be assigned to.
     """
 
-    __tablename__ = 'Employees'
+    __tablename__ = 'Employee'
     
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
@@ -170,8 +170,8 @@ class Employees(Base):
     workmans_comp = Column(Integer)
     social_security = Column(Integer)
     
-    schedules = relationship("DB_Schedule")
-    unavailable_schedules = relationship("Unavailable_Schedule")
+    schedules = relationship("Schedule")
+    unavailable_schedules = relationship("Vacation")
     unav_time_schedules = relationship("UnavailableTime")
     
     
@@ -193,24 +193,24 @@ class Employees(Base):
         self.workmans_comp = work_comp
         self.social_security = soc_sec
         
-        self.schedule = relationship("DB_Schedule")
-        self.unavailable_schedule = relationship("Unavailable_Schedule")
+        self.schedule = relationship("Schedule")
+        self.vacation = relationship("Vacation")
         
         
-    def add_schedule(self, db_schedule):
+    def add_schedule(self, schedule):
         """Add schedule to list of schedule's this employee is assigned to."""
-        self.schedules.append(db_schedule)
+        self.schedules.append(schedule)
     
     
-    def remove_schedule(self, db_schedule):
+    def remove_schedule(self, schedule):
         """Remove schedule from list of assigned schedules for this employee."""
-        index = self.schedules.index(db_schedule)
+        index = self.schedules.index(schedule)
         del self.schedules[index]
     
     
-    def add_unavailable_schedule(self, unavailable_schedule):
+    def add_unavailable_schedule(self, vacation):
         """Add vacation to list of vacations's this employee is assigned to."""
-        self.unavailable_schedules.append(unavailable_schedule)
+        self.unavailable_schedules.append(vacation)
         
         
     def add_unav_time(self, unav_time):
@@ -228,7 +228,7 @@ class Employees(Base):
         return self.unav_time_schedules
         
     
-    def get_availability(self, db_schedule):
+    def get_availability(self, schedule):
         """Get availability of employee given schedule.
         
         There are 5 levels of availability of an employee given a schedule.
@@ -245,20 +245,20 @@ class Employees(Base):
         """
         
         schedules = list(self.schedules)
-        if db_schedule in schedules:
-            schedules.remove(db_schedule)
+        if schedule in schedules:
+            schedules.remove(schedule)
         for t in schedules:
-            if db_schedule.start_datetime < t.end_datetime and t.start_datetime < db_schedule.end_datetime:
+            if schedule.start_datetime < t.end_datetime and t.start_datetime < schedule.end_datetime:
                 return '(S)'
         for t in self.unavailable_schedules:
-            if db_schedule.start_datetime < t.end_datetime and t.start_datetime < db_schedule.end_datetime:
+            if schedule.start_datetime < t.end_datetime and t.start_datetime < schedule.end_datetime:
                 return '(V)'
         same_day_unav = [s for s in self.unav_time_schedules if (s.weekday 
-                                                                 == db_schedule.schedule_date.weekday())]
+                                                                 == schedule.schedule_date.weekday())]
         for s in same_day_unav:
-            if db_schedule.start_time < s.end_time and s.start_time < db_schedule.end_time:
+            if schedule.start_time < s.end_time and s.start_time < schedule.end_time:
                 return '(U)'
-        if self.calculate_weekly_hours(db_schedule) > self.overtime:
+        if self.calculate_weekly_hours(schedule) > self.overtime:
             return '(O)'
         return '(A)'
         
@@ -294,7 +294,7 @@ class MonthSales(Base):
 class Department(Base):  
     """ORM representation of a department."""
     
-    __tablename__ = 'Departments'
+    __tablename__ = 'Department'
     
     id = Column(Integer, primary_key=True)
     name = Column(String)

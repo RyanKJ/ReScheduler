@@ -1004,8 +1004,8 @@ class DayModel(object):
         date = datetime.date(self.date.year, self.date.month, 
                              self.date.day)
         db_schedules = (self.session
-                            .query(DB_Schedule)
-                            .filter(DB_Schedule.schedule_date == date)
+                            .query(Schedule)
+                            .filter(Schedule.schedule_date == date)
                             .all())
                          
         db_schedules = [s for s in db_schedules if s.department == self.dep]
@@ -1051,8 +1051,8 @@ class DayModel(object):
         str = start_str + " - " + end_str
         if schedule.employee_id != None:
             employee = (self.session
-                            .query(Employees)
-                            .filter(Employees.employee_id
+                            .query(Employee)
+                            .filter(Employee.employee_id
                                     == schedule.employee_id)
                             .first())
             str += "  " + employee.first_name
@@ -1074,7 +1074,7 @@ class DayModel(object):
             The primary key of the schedule for reference.
         """
         
-        db_schedule = DB_Schedule(start, 
+        db_schedule = Schedule(start, 
                                   end,
                                   s_hide,
                                   e_hide,
@@ -1103,8 +1103,8 @@ class DayModel(object):
             id: The primary key of the schedule to be removed.
         """
         
-        db_schedule = (self.session.query(DB_Schedule)
-                                   .filter(DB_Schedule.id == id)
+        db_schedule = (self.session.query(Schedule)
+                                   .filter(Schedule.id == id)
                                    .first())
         self.session.delete(db_schedule)
         self.session.commit()
@@ -1373,7 +1373,7 @@ class EligableModel(object):
         eligables = collections.OrderedDict([('(A)', []), ('(O)', []), ('(U)', []), ('(V)', []), ('(S)', [])])
         employee_list = []
         e_listbox_list = []
-        employees = self.session.query(Employees).all()
+        employees = self.session.query(Employee).all()
         employees = [e for e in employees if (e.primary_department == self.dep
                                               or e.alternate1_department == self.dep
                                               or e.alternate2_department == self.dep)]
@@ -1469,8 +1469,8 @@ class EligableModel(object):
         db_schedule = self.get_db_schedule(self.schedule_pk)
         if db_schedule.employee_id:
             employee = (self.session
-                            .query(Employees)
-                            .filter(Employees.employee_id 
+                            .query(Employee)
+                            .filter(Employee.employee_id 
                                     == db_schedule.employee_id)
                             .first())
                             
@@ -1490,8 +1490,8 @@ class EligableModel(object):
             The database schedule object corresponding to supplied primary key.
         """
         
-        db_schedule = (self.session.query(DB_Schedule)
-                                   .filter(DB_Schedule.id == id)
+        db_schedule = (self.session.query(Schedule)
+                                   .filter(Schedule.id == id)
                                    .first())
         return db_schedule
         
@@ -1507,8 +1507,8 @@ class EligableModel(object):
         """
         
         employee = (self.session
-                        .query(Employees)
-                        .filter(Employees.employee_id == id)
+                        .query(Employee)
+                        .filter(Employee.employee_id == id)
                         .first())    
         return employee
 
@@ -1861,8 +1861,8 @@ class CalendarCalculator(tk.Frame):
             return
     
         schedules = (self.session
-                         .query(DB_Schedule)
-                         .filter(DB_Schedule.calendar_date == self.cal.date)
+                         .query(Schedule)
+                         .filter(Schedule.calendar_date == self.cal.date)
                          .all())
         departments = (self.session
                            .query(Department)
