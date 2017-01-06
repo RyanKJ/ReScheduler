@@ -4,6 +4,10 @@ Exhaustively enumerate cases for:
 -get_eligables
 """
 
+import sys
+import os
+sys.path.append(os.path.split(sys.argv[0])[0])
+
 import unittest
 import orm_models as orm
 import datetime
