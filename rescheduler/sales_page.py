@@ -1,3 +1,7 @@
+"""
+Module for the employee and department page.
+"""
+
 import Tkinter as tk
 import ttk
 import calendar
@@ -9,12 +13,19 @@ from sqlalchemy.orm import sessionmaker
 
 
 class SalesPage:
+    """
+    Sales page acts as a simple add and remove listbox. It adds revenue data
+    to the database that includes information about the month and the year of
+    the revenue data. This revenue data is then used to calculate the cost
+    employment for a given month relative to the average revenue of that month.
+    """
 
-    month_to_num = {"January":1, "February":2, "March":3, "April":4, 
+    MONTH_TO_NUM = {"January":1, "February":2, "March":3, "April":4, 
                     "May":5, "June":6, "July":7, "August":8, "September":9, 
                     "October":10, "November":11, "December":12}
 
     def __init__(self, master, session, calendar_page):
+        """Initialize SalesPage and the different composite widgets."""
         self.master = master
         self.session = session
         self.cal = calendar_page
@@ -105,8 +116,6 @@ class SalesPage:
         """Load db obj from Sales table and put into listbox/parallel list."""
         self.sales_lb.delete(0, tk.END)
         self.sales_info = self.session.query(MonthSales).all()
-        # Edit: Perhaps the primary key should be date and therefore auto-sorted?
-        #sorted(self.sales_info, key=lambda sales_info: sales_info.month_and_year)
         self.sales_info.sort(key=lambda sales: sales.month_and_year)
         for s in self.sales_info:
             text = s.get_string()
@@ -114,17 +123,15 @@ class SalesPage:
         
     def add_sales_info(self):
         """Commit data fields in widgets to listbox and DB Sales table."""
-        # 1 - Create a Date object using the month and year StringVars
         year = int(self.year_var.get())
-        month = self.month_to_num[self.month_var.get()]
+        month = self.MONTH_TO_NUM[self.month_var.get()]
         amount = self.amount_var.get()
         sales_date = datetime.date(year, month, 1)
-        # 2 - Create MonthSales object with Date object and IntVar
         sales_info = MonthSales(sales_date, amount)
         self.session.add(sales_info)
         self.session.commit()
-        # 3 - Use get_string method of db object and add to end of listbox?
         self.load_sales_info()
+        
         self.cal.update_costs()
         
     def remove_sales_info(self):
@@ -132,13 +139,10 @@ class SalesPage:
         if self.sales_lb.curselection() == ():
             return
         index =  self.sales_lb.curselection()[0]
-        
         self.sales_lb.delete(index)
         sales_info_obj = self.sales_info[index]
-        
         self.session.delete(sales_info_obj)
         self.session.commit()
-        
         del self.sales_info[index]
         
         self.cal.update_costs()
