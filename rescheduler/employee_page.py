@@ -29,10 +29,7 @@ class EmployeePage(tk.Frame):
     """
     
     def __init__(self, parent, session):
-        """
-        Initialize EmployeePage and the different composite widgets
-        """
-        
+        """Initialize EmployeePage and the different composite widgets."""
         tk.Frame.__init__(self, parent)
         self.session = session
         self.curr_sel_employee = None

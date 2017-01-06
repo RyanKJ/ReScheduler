@@ -1398,10 +1398,8 @@ class EligableModel(object):
                 else:
                     e_listbox_list.append(key + " " + e.first_name)
 
-            # Then concatenate the list of db objects
             sorted_employee_ids = [e.employee_id for e in e_list]
             employee_list += sorted_employee_ids
-        # In the last step we recombing the demarcated sorted lists
         self.eligable_id_list = employee_list
         return e_listbox_list
         
