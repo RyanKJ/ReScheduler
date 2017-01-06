@@ -29,7 +29,8 @@ from openpyxl.styles import Alignment
 wb = load_workbook('CalendarTemplate.xlsx')
 ws = wb['Calendar']
 
-class ReScheduler:
+
+class ReScheduler(object):
     """Create a tab button navigator for user to navigate pages.
     
     This class instantiates several pages to display so that the user can
@@ -1629,7 +1630,7 @@ class ScheduleWidget(tk.Frame):
     
 
 
-class ScheduleEditor:
+class ScheduleEditor(tk.Frame):
     """Composite widget to add schedules
     
     The ScheduleEditor allows for the user to add a schedule with several 
@@ -1748,7 +1749,7 @@ class ScheduleEditor:
             
    
             
-class CalendarCalculator:
+class CalendarCalculator(tk.Frame):
     """Composite widget to display costs of all calendars for given month.
     
     The CalendarCalculator is essentially a list of percentages of employment
