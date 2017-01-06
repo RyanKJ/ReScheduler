@@ -346,7 +346,8 @@ class GetEligablesTest(unittest.TestCase):
     secondary, thus should never appear on the list of eligables.
     """
     
-    employees = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'}
+    EMPLOYEE_NAMES = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I'}
+    employees = []
     
     def setUp(self):
         """
@@ -371,34 +372,37 @@ class GetEligablesTest(unittest.TestCase):
         self.schedule = create_schedule(self.session, self.start, self.end, 
                                         self.dep1.name)
     
-        eligable_model = EligableModel(self.session, self.schedule.id, 
-                                       self.dep1, DayModelDummy)
+        self.eligable_model = EligableModel(self.session, self.schedule.id, 
+                                            self.dep1.name, DayModelDummy)
         
         # Create employees
-        for e in ['A', 'B', 'C', 'D', 'E']:
-            employee = create_employee(self.session, e, e, self.dep1)
-            employees[e] = employee
-        for e in ['F', 'G', 'H', 'I', 'J']:
-            employee = create_employee(self.session, e, e, self.dep2, self.dep1) 
-            employees[e] = employee
-        employee = create_employee(self.session, 'K', 'K', 'Driver')  
-        employees['K'] = employee
+        for i in range(0, 4):
+            employee = create_employee(self.session, i, self.EMPLOYEE_NAMES[i], 
+                                       self.EMPLOYEE_NAMES[i], self.dep1.name)
+            self.employees.append(employee)
+        for i in range(4, 8):
+            employee = create_employee(self.session, i, self.EMPLOYEE_NAMES[i], 
+                                       self.EMPLOYEE_NAMES[i], self.dep2.name, 
+                                       self.dep1.name)
+            self.employees.append(employee)
+        employee = create_employee(self.session, 8, 'I', 'I', 'Driver')  
+        self.employees.append(employee)
 
         # Create unavailable repeat conflicts
         start_time = datetime.time(12, 0)
         end_time = datetime.time(16, 0)
         unavailable1 = create_unavailable(self.session, start_time, end_time, 
-                                          1, self.employees['C'].employee_id)                           
+                                          1, self.employees[1].employee_id)                           
         unavailable2 = create_unavailable(self.session, start_time, end_time, 
-                                          1, self.employees['H'].employee_id)
+                                          1, self.employees[5].employee_id)
                                           
         # Create vacation conflicts
         v_start = datetime.datetime(2017, 2, 14, 0, 0, 0)
         v_end = datetime.datetime(2017, 2, 14, 23, 59, 59)
         vacation1 = create_vacation(self.session, v_start, v_end, 
-                                    self.employees['D'].employee_id)
+                                    self.employees[2].employee_id)
         vacation2 = create_vacation(self.session, v_start, v_end, 
-                                    self.employees['I'].employee_id)
+                                    self.employees[6].employee_id)
                                     
         # Create schedule conflicts
         t_delta = datetime.timedelta(0, 900) # 15 minutes
@@ -408,21 +412,31 @@ class GetEligablesTest(unittest.TestCase):
         overlap_sch2 = get_overlapping_schedule(self.session,
                                                 self.schedule, 
                                                 t_delta, 'START')
-        assign_schedule(self.session, self.employees['E'], overlap_sch1)
-        assign_schedule(self.session, self.employees['J'], overlap_sch1)
+        assign_schedule(self.session, self.employees[3], overlap_sch1)
+        assign_schedule(self.session, self.employees[7], overlap_sch2)
                                     
         
     def testGetEligables(self):
         """get_eligables creates 2 list, for the model and the view.
         
-        Assert that eligable_model.eligable_id_list is correct.
-        Assert that e_listbox_list is correct.
+        Assert that e_listbox_list is correct, this represents a sorted list
+        of strings that represents the view the user sees of the eligible 
+        employees for this schedule.
+        
+        Assert that eligable_model.eligable_id_list is correct, this represents
+        a sorted order reference to the database employee entries by their
+        employee_id field.
         """
         
-        expected_lb_list = ['A', 'B', 'F', 'G', 'C', 'H', 'D', 'I', 'E', 'J']
-        eligable_list = self.employee.get_availability(self.schedule)
-        self.assertEqual(expected_lb_list, eligable_list, msg='Eligable list conflict')
-     
+        expected_lb_list = [u'A', u'E', u'(U) B', u'(U) F', u'(V) C', u'(V) G', u'(S) D', u'(S) H']
+        eligable_list = self.eligable_model.get_eligables()
+        self.assertEqual(expected_lb_list, eligable_list, 
+                         msg='Eligable listbox list not correct.')
+        
+        expected_id_list = [0, 4, 1, 5, 2, 6, 3, 7]
+        eligable_id_list = self.eligable_model.eligable_id_list
+        self.assertEqual(expected_id_list, eligable_id_list, 
+                         msg='Eligable id list is not correct.')
      
     def tearDown(self):
         """Remove everything from the database."""
