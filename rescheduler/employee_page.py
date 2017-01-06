@@ -563,8 +563,7 @@ class EmployeeInfoForm(tk.Frame):
                                   .query(Employee)
                                   .filter(Employee.employee_id == id)
                                   .first())
-        employee_id = self.e_page.curr_sel_employee
-        if potential_employee == None or potential_employee.employee_id == employee_id:
+        if potential_employee == None or potential_employee.employee_id == id:
             return False
         else:
             return True
