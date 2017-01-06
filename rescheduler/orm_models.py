@@ -114,6 +114,7 @@ class UnavailableTime(Base):
 
     WEEKDAY_TO_STR = {0: 'Mon', 1: 'Tu', 2: 'Wed', 3: 'Thu', 
                       4: 'Fri', 5: 'Sat', 6: 'Sun'}
+                      
     __tablename__ = 'unavailable_time'
     
     id = Column(Integer, primary_key=True)
@@ -200,6 +201,7 @@ class Employees(Base):
         """Add schedule to list of schedule's this employee is assigned to."""
         self.schedules.append(db_schedule)
     
+    
     def remove_schedule(self, db_schedule):
         """Remove schedule from list of assigned schedules for this employee."""
         index = self.schedules.index(db_schedule)
@@ -207,23 +209,41 @@ class Employees(Base):
     
     
     def add_unavailable_schedule(self, unavailable_schedule):
-        
+        """Add vacation to list of vacations's this employee is assigned to."""
         self.unavailable_schedules.append(unavailable_schedule)
         
+        
     def add_unav_time(self, unav_time):
+        """Add unrepeating unavailabile to to this employee."""
         self.unav_time_schedules.append(unav_time)
         
+        
     def get_absent_schedules(self):
+        """Get all vacations of this employee."""
         return self.unavailable_schedules	
         
+        
     def get_unav_days(self):
+        """Get all unrepeating unavailabile schedules of this employee."""
         return self.unav_time_schedules
         
-    # Given a schedule returns true or false boolean
-    # True if there is no scheduling conflict, false is there is.
+    
     def get_availability(self, db_schedule):
-        # If this employee is assigned to the db_schedule itself already, we
-        # don't want to consider this a schedule conflict.
+        """Get availability of employee given schedule.
+        
+        There are 5 levels of availability of an employee given a schedule.
+        Available (A): there are no conflicts for this employee. Overtime (O):
+        Employee has no conflicts except overtime. Unavailable repeat (U):
+        employee has a repeating conflict that has some time overlap with the
+        supplied schedule. Vacation (V): employee has vacation that has some
+        overlap with the schedule, and Schedule (S): employee has another
+        schedule that has some overlap with the schedule to be assigned.
+        
+        Note that in order to not have a schedule conflict (S) with an employee
+        already assigned to that schedule we must remove the schedule from the 
+        list of assigned schedules for this employee.
+        """
+        
         schedules = list(self.schedules)
         if db_schedule in schedules:
             schedules.remove(db_schedule)
@@ -242,24 +262,18 @@ class Employees(Base):
             return '(O)'
         return '(A)'
         
-    # Adds up all the hours scheduled for this employee
-    # Find a way to filter all schedules for this employee filtered to same
-    # week as the supplied schedule, then calculate the summed time delta of 
-    # all the 
+        
     def calculate_weekly_hours(self, schedule):
+        """Calculate number of hours worked by employee for week of schedule."""
         return 0
     
-    # Calculate cost to employ employee for that month's calendar
-    def calculate_cost(self):
-        pass
+    
         
 class MonthSales(Base):
-    """ORM representation of the total revenue for given month and year.
-    
-    
-    """
+    """ORM representation of the total revenue for given month and year."""
 
     __tablename__ = 'Sales'
+    
     id = Column(Integer, primary_key=True)
     month_and_year = Column(Date)
     total_sales = Column(Integer)
@@ -278,13 +292,10 @@ class MonthSales(Base):
         
         
 class Department(Base):  
-    """ORM representation of a department.
+    """ORM representation of a department."""
     
-    
-    """
-    
-
     __tablename__ = 'Departments'
+    
     id = Column(Integer, primary_key=True)
     name = Column(String)
     
@@ -302,7 +313,6 @@ def start_db(db_name, test=False):
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
-    
     # Case where user starts program, but no departments in database
     departments = session.query(Department).all()
     if departments == [] and not test:
