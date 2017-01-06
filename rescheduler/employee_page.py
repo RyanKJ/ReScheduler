@@ -599,7 +599,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
     employee id for employee to be assigned is supplied by the controller.
     """
 
-    self.unav_days = []
+    unav_days = []
     DAYS_TO_NUM = {'Sunday':6, 'Monday':0, 'Tuesday':1, 'Wednesday':2,
                     'Thursday':3, 'Friday':4, 'Saturday':5}
 
