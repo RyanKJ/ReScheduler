@@ -1824,8 +1824,6 @@ class CalendarCalculator(tk.Frame):
         self.update_costs()
         
         
-
-        
     def get_percentage(self, schedules, total):
         """Return percentage cost of schedules relative to total."""
         sum = 0.0
