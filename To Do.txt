@@ -2,19 +2,15 @@ To Do list:
 
 
 Pythonisize Code:
-1) Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
-    -Add session into args comment for relevant classes
+Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
     -make attributes and private methods pythonic
     -Make idioms consistent: tk.LEFT only, replace args like 'left'
-    -Check import style guides and make pythonic
     -Make sure conditionals are pythonic: 
-        Save method test should have better type checking idioms
-    -Get rid of calls to constants like DAY, replace with library:
+        -Save method test should have better type checking idioms
+    -Get rid of calls to constants like DAY, replace with library calls:
         -MONTHS
         -DAYS
-        -Letters for version: alphabet
-2) Get rid of main module, or turn into __init__?
-3) Add in scrollbars to schedule editor and listboxes on employee page
+        -Letters for export version: alphabet
 
 
 
@@ -34,24 +30,12 @@ To Do General List:
     -Also put widgets in disabled state when no employee clicked?
 10) Change instantiated calendar upon starting program to be next month 
     of current datetime.datetime.now() month
-11) Redesign calc_widgets to be more efficient: 1 Query to DB then process?
-12) Add optional arg to TimeEntry for setting default values: kwargs?
-13) Change application icon
-14) Make add_vacation, add_repeat insert new item in sorted order, not at end
-
-
-
-
-Misc:
-
-Questions I have about good programming/pythonic programming:
-1) Should all my classes use inheritance, even if only from object? Frame?
-2) For OOP, when should I use the self prefix?
-3) How should my classes reference SQLAlchemy's session object? Global?
-    Passed in via __init__?
-4) Should EmployeePage be seperated into several other classes for readability
-    and seperation of concerns?
-5) Listbox with parallel list idiom: make a class?
+11) Add optional arg to TimeEntry for setting default values: kwargs?
+12) Change application icon
+13) Make add_vacation, add_repeat insert new item in sorted order, not at end
+14) Add on more validation for save_employee_info
+15) Add in scrollbars to schedule editor and listboxes on employee page
+16) Get rid of main module, or turn into __init__?
 
 
 
