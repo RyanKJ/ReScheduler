@@ -7,7 +7,7 @@ import ttk
 import calendar
 import datetime
 from datetime_widgets import yearify
-from orm_models import *
+from orm_models import MonthSales
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

@@ -8,7 +8,7 @@ import datetime
 import bisect
 import collections
 from datetime_widgets import DateEntry, TimeEntry, yearify
-from orm_models import *
+from orm_models import Employee, Department, Vacation, UnavailableTime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

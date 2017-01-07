@@ -17,7 +17,7 @@ from employee_page import (EmployeePage, EmployeeList, DepartmentList,
                            EmployeeVacations)
 from sales_page import SalesPage
 from datetime_widgets import TimeEntry, DateEntry, yearify
-from orm_models import *
+from orm_models import Schedule, Employee, Department, MonthSales
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -43,10 +43,9 @@ class ReScheduler(object):
         There are three pages that this init method creates. The first is the
         calendar page which displays the calendar, schedule editor and costs
         of calendars relative to average total monthly sales. The second page
-        is the employee/department page where employees are 
-        added/edited/removed, and a monthly sales page where total monthly sales
-        can be added and removed by the user.
-        
+        is the employee/department page where employees are added, edited, 
+        and removed, and a monthly sales page where total monthly sales can be 
+        added and removed by the user.
         
         Args:
             parent: A parent tkinter frame object.
@@ -61,26 +60,20 @@ class ReScheduler(object):
         month, year = int(now.strftime("%m")), int(now.strftime("%Y"))
         date = datetime.date(year, month, 1)
         
-        # Calendar page widgets
-        self.calendar_frame = ttk.Frame(n)
-        self.calendar = CalendarPage(self.calendar_frame, 
-                                     session, 
-                                     date,
-                                     dep_list)
-        # Employee page widgets                              
-        self.employee_page_frame = ttk.Frame(n)
-        self.employee_page = EmployeePage(self.employee_page_frame, 
-                                          session)
-        self.employee_page.pack()
-        # Sales page widgets
-        self.sales_page_frame = ttk.Frame(n)
-        self.sales_page = SalesPage(self.sales_page_frame, 
-                                    session, 
-                                    self.calendar)
+        # Calendar page
+        calendar_frame = ttk.Frame(n)
+        calendar = CalendarPage(calendar_frame, session, date, dep_list)
+        # Employee page                   
+        employee_page_frame = ttk.Frame(n)
+        employee_page = EmployeePage(employee_page_frame, session)
+        employee_page.pack()
+        # Sales page
+        sales_page_frame = ttk.Frame(n)
+        sales_page = SalesPage(sales_page_frame, session, calendar)
                                     
-        n.add(self.calendar_frame, text="Calendar")
-        n.add(self.employee_page_frame, text="Employees And Departments")
-        n.add(self.sales_page_frame, text="Monthly Revenue Data")
+        n.add(calendar_frame, text="Calendar")
+        n.add(employee_page_frame, text="Employees And Departments")
+        n.add(sales_page_frame, text="Monthly Revenue Data")
                                             
                 
         
@@ -96,6 +89,7 @@ class CalendarPage(tk.Frame):
     for that month.
     
     Attributes:
+        session: An sqlalchemy session object using sqlite3.
         dep_list: A string list of all department names.
         side_info_frame: tk.Frame that contains schedule_editor and 
             calendar_calc.
@@ -105,7 +99,7 @@ class CalendarPage(tk.Frame):
             relative to average monthly revenue.
     """
     
-    def __init__(self, master, session, date, dep_list):
+    def __init__(self, parent, session, date, dep_list):
         """Inits CalendarPage with a date and a department list.
         
         Upon the opening of the program, the init method instantiates the
@@ -114,17 +108,18 @@ class CalendarPage(tk.Frame):
         page.
         
         Args: 
-            master: tk.Frame to contain all child widgets.
+            parent: tk.Frame to contain all child widgets.
+            session: An sqlalchemy session object using sqlite3.
             date: datetime.date object containing present month and year.
             dep_list: A string list of all department variables.
         """
         self.session = session
         self.dep_list = dep_list
-        self.side_info_frame = tk.Frame(master)
+        self.side_info_frame = tk.Frame(parent)
         self.schedule_editor = ScheduleEditor(self.side_info_frame, self)
     
-        self.calendar_menu = CalendarMenu(master, self, date, dep_list)
-        self.calendar_display = CalendarDisplay(master, self,
+        self.calendar_menu = CalendarMenu(parent, self, date, dep_list)
+        self.calendar_display = CalendarDisplay(parent, self,
                                                 self.schedule_editor, 
                                                 date, dep_list[0])
                     
@@ -179,7 +174,7 @@ class CalendarMenu(tk.Frame):
     
     Attributes:
         MONTH_TO_INT: dict for converting string month names to int.
-        master: tk.Frame parent for all child widgets.
+        parent: tk.Frame parent for all child widgets.
         c_page: calendar_page, a quasi-controller object.
         dep_list: String list of all departments.
         department_var: tk.StringVar for representing selected department.
@@ -192,23 +187,23 @@ class CalendarMenu(tk.Frame):
                     "May":5, "June":6, "July":7, "August":8, "September":9, 
                     "October":10, "November":11, "December":12}
 
-    def __init__(self, master, c_page, date, dep_list):
+    def __init__(self, parent, c_page, date, dep_list):
     
         """Initialize calendar selection and saving widgets.
         
         Args:
-            master: tk.Frame container for child widgets.
+            parent: tk.Frame container for child widgets.
             c_page: Quasi-controller class to call other widget collections.
             date: datetime.date object containing present month and year.
             dep_list: List of strings for department names.
         """
         
-        self.master = master
+        self.parent = parent
         self.c_page = c_page      
         self.dep_list = dep_list
 
         # tk.Frame to hold the canvas which will display the y-axis scrollbar
-        calendar_menu_frame = tk.Frame(self.master)
+        calendar_menu_frame = tk.Frame(self.parent)
         calendar_menu_frame.pack(side="top", fill="both", expand=True)
         
         # Department selection widgets
@@ -580,14 +575,14 @@ class DayViewController(tk.Frame):
 
     DAY_COL_EXCEL = {0:'A', 1:'B', 2:'C', 3:'D', 4:'E', 5:'F', 6:'G'}
 
-    def __init__(self, master, calendar_display, schedule_editor, day_model):
+    def __init__(self, parent, calendar_display, schedule_editor, day_model):
         """Initialize the day view according to model representation
     
         Create appropriate widgets and fill with information via day_model
         reference.
         
         Args:
-            master: tk.Frame container for subwidgets.
+            parent: tk.Frame container for subwidgets.
             calendar_display: interactive calendar containing day_vc instances.
             schedule_editor: UI interface to add/remove/edit schedules.
             day_model: corresponding model for this particular date.
@@ -606,7 +601,7 @@ class DayViewController(tk.Frame):
         self.schedule_widgets = {}
         self.eligable_vc = {}
     
-        self.day_frame = tk.Frame(master, borderwidth=1, 
+        self.day_frame = tk.Frame(parent, borderwidth=1, 
                                   relief=tk.RIDGE, bg="white")               
         coor = self.get_grid_coordinates()
         self.day_frame.grid(row=coor[0], column=coor[1])
@@ -951,6 +946,7 @@ class DayModel(object):
     ordered by start time from earliest to latest.
     
     Attributes:
+        session: An sqlalchemy session object using sqlite3.
         cal: The calendar_display that allows a callback to update costs.
         date: datetime.date object to represent date of this day_model.
         week_number: int of week in the month.
@@ -976,11 +972,12 @@ class DayModel(object):
         eligable employees for a particular schedule.
         
         Args:
-            calendar_display: calendar containing reference when updating costs
-            date: datetime.date object representing date for this day
-            week_number: int of week in the month
-            weekday: int of day in the month
-            dep: string representing the department this day represents
+            session: An sqlalchemy session object using sqlite3.
+            calendar_display: calendar containing reference when updating costs.
+            date: datetime.date object representing date for this day.
+            week_number: int of week in the month.
+            weekday: int of day in the month.
+            dep: string representing the department this day represents.
         """
         
         self.session = session
@@ -1278,6 +1275,7 @@ class EligableModel(object):
     displayed in the view.
     
     Attributes:
+        session: An sqlalchemy session object using sqlite3.
         schedule_pk: primary key for corresponding schedule.
         dep: department of the current displayed calendar.
         day_model: model representing the day for given date/department.
@@ -1292,6 +1290,7 @@ class EligableModel(object):
         representation of that day.
         
         Args:
+            session: An sqlalchemy session object using sqlite3.
             calendar_display: calendar containing reference when updating costs.
             date: datetime.date object representing date for this day.
             week_number: int of week in the month.
@@ -1640,25 +1639,25 @@ class ScheduleEditor(tk.Frame):
     time and to hide or show the start/end times.
     
     Attributes:
-        master: tk.Frame container for the child widgets.   
+        parent: tk.Frame container for the child widgets.   
         c_page: Quasi-controller object for ScheduleEditor to
             know calendar to add schedules to.
     """
 
-    def __init__(self, master, calendar_page):
+    def __init__(self, parent, calendar_page):
         """Initialize interface for user to add schedules to calendar.
 
         Args:
-            master: tk.Frame container for the child widgets.   
+            parent: tk.Frame container for the child widgets.   
             calendar_page: Quasi-controller object for ScheduleEditor to
                 know calendar to add schedules to.
         """
         
         self.c_page = calendar_page
-        self.master = master
+        self.parent = parent
         
         # LabelFrame container for all child subwidgets
-        self.schedule_frame = ttk.LabelFrame(self.master, text="Schedule Editor")
+        self.schedule_frame = ttk.LabelFrame(self.parent, text="Schedule Editor")
         self.schedule_frame.pack(fill="both")
         self.schedule_add_frame = tk.Frame(self.schedule_frame)
         self.schedule_add_frame.pack()
@@ -1762,7 +1761,8 @@ class CalendarCalculator(tk.Frame):
     month.
     
     Attributes:
-        master: tk.Frame container for the child widgets.   
+        parent: tk.Frame container for the child widgets.   
+        session: An sqlalchemy session object using sqlite3.
         cal: Quasi-controller object for ScheduleEditor to
             know calendar to add schedules to.
         percentage_dict: dictionary object that maps strings of department
@@ -1771,23 +1771,24 @@ class CalendarCalculator(tk.Frame):
             and year.
     """
     
-    def __init__(self, master, session, calendar_display, dep_list):
+    def __init__(self, parent, session, calendar_display, dep_list):
         """Initialize the display of costs for calendars.
 
         Args:
-            master: tk.Frame container for the child widgets.   
+            parent: tk.Frame container for the child widgets.   
+            session: An sqlalchemy session object using sqlite3.
             calendar_page: Quasi-controller object for ScheduleEditor to
                 know calendar to add schedules to.
             dep_list: A string list of all departments.
         """
     
-        self.master = master
+        self.parent = parent
         self.session = session
         self.cal = calendar_display
         self.percentage_dict = {}
         
         
-        calc_frame = ttk.LabelFrame(self.master, 
+        calc_frame = ttk.LabelFrame(self.parent, 
                                     text='Payroll To Revenue Ratio*')
         calc_frame.pack(fill=tk.X, pady=12)
         warning_lbl = tk.Label(calc_frame, 
