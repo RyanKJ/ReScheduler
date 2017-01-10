@@ -238,6 +238,7 @@ class EmployeeList(tk.Frame):
                     index = list_of_names.index(text)
                     self.employee_listbox.delete(index)
                     self.employee_listbox.insert(index, str)
+                    self.employee_listbox.selection_clear(0, tk.END)
                     self.employee_listbox.selection_set(index)
                     break
             
@@ -474,7 +475,7 @@ class EmployeeInfoForm(tk.Frame):
             self.soc_sec_var.set(employee.social_security)
             self.medical_var.set(employee.medical)
         else:
-            add_new_e_info()
+            self.add_new_e_info()
           
     
     def save_employee_info(self):
