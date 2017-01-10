@@ -41,12 +41,12 @@ class EmployeePage(tk.Frame):
         
         self.employee_list_frame = tk.Frame(employee_department_nb)
         self.employee_list_frame.pack()
-        self.employee_list = EmployeeList(self.employee_list_frame, session, self)
+        self.employee_list = EmployeeList(self.employee_list_frame, self)
         self.employee_list.pack()
         
         self.dep_list_frame = tk.Frame(employee_department_nb)
         self.dep_list_frame.pack()
-        self.dep_list = DepartmentList(self.dep_list_frame, session)
+        self.dep_list = DepartmentList(self.dep_list_frame, self)
         self.dep_list.pack()
 
         employee_department_nb.add(self.employee_list_frame, text="Employee List")
@@ -58,8 +58,7 @@ class EmployeePage(tk.Frame):
                                                   text='Employee Information')
         self.employee_info_frame.pack(side="left", fill="both", expand=True,
                                       padx=10, pady=24, anchor='center')
-        self.e_info_form = EmployeeInfoForm(self.employee_info_frame, session,
-                                            self)     
+        self.e_info_form = EmployeeInfoForm(self.employee_info_frame, self)     
         self.e_info_form.pack()
                              
 
@@ -72,7 +71,7 @@ class EmployeePage(tk.Frame):
         self.repeat_unav_frame.pack(side="left", fill="both", expand=True,
                                       padx=10, pady=24, anchor='center')                            
         self.e_unav_form = EmployeeRepeatUnavailable(self.repeat_unav_frame, 
-                                                session, self) 
+                                                     self) 
         self.e_unav_form.pack()                                        
                                       
                                       
@@ -80,7 +79,7 @@ class EmployeePage(tk.Frame):
         self.vacation_frame.pack(side="left", fill="both", expand=True,
                                       padx=10, pady=24, anchor='center')
         self.e_vacation_form = EmployeeVacations(self.vacation_frame, 
-                                            session, self)  
+                                                 self)  
         self.e_vacation_form.pack()
         
         self.unavailability_nb.add(self.repeat_unav_frame, 
@@ -127,13 +126,11 @@ class EmployeeList(tk.Frame):
     
     employee_id_list = []
         
-    def __init__(self, parent, session, e_page):
+    def __init__(self, parent, controller):
         """Initialize EmployeeList widgets, load employees."""
     
         tk.Frame.__init__(self, parent)
-        
-        self.session = session
-        self.e_page = e_page
+        self.controller = controller
         
         # Create and load listbox and its parallel list
         self.employee_listbox = tk.Listbox(self, 
@@ -161,7 +158,7 @@ class EmployeeList(tk.Frame):
         
     def load_listbox_and_parallel_list(self):
         """Load listbox of employee names and parallel list of employee_id."""
-        employee_db_list = self.session.query(Employee).all()
+        employee_db_list = self.controller.session.query(Employee).all()
         employee_db_list.sort(key=lambda e: e.first_name)
         
         for e in employee_db_list:
@@ -176,17 +173,17 @@ class EmployeeList(tk.Frame):
         self.employee_listbox.selection_clear(0, tk.END)
         self.employee_listbox.insert(tk.END, "New Employee")
         self.employee_listbox.selection_set(tk.END)
-        self.e_page.curr_sel_employee = "New Employee"
+        self.controller.curr_sel_employee = "New Employee"
         
-        self.e_page.add_new_e_info()
+        self.controller.add_new_e_info()
        
         
         
     def load_employee(self, event):
         """Tell controller to load the employee that whose name was clicked."""
         employee_id = self.get_employee_id()
-        self.e_page.curr_sel_employee = employee_id
-        self.e_page.load_employee_data(employee_id)
+        self.controller.curr_sel_employee = employee_id
+        self.controller.load_employee_data(employee_id)
         
     
     def remove_employee(self):
@@ -198,9 +195,9 @@ class EmployeeList(tk.Frame):
         # Employee in listbox may be new employee not in parallel list
         if index < len(self.employee_id_list):
             employee_id = self.employee_id_list[index]
-            employee = self.e_page.get_employee(employee_id)
-            self.session.delete(employee)
-            self.session.commit()
+            employee = self.controller.get_employee(employee_id)
+            self.controller.session.delete(employee)
+            self.controller.session.commit()
             del self.employee_id_list[index]
 
         
@@ -226,7 +223,7 @@ class EmployeeList(tk.Frame):
         
     def update_listbox(self, employee_id):
         """Update the name of employee in the listbox."""
-        employee = self.e_page.get_employee(employee_id)
+        employee = self.controller.get_employee(employee_id)
         str = employee.first_name + " " + employee.last_name
         if employee_id in self.employee_id_list:
             index = self.employee_id_list.index(employee_id)
@@ -256,10 +253,10 @@ class DepartmentList(tk.Frame):
     
     dep_list = []
 
-    def __init__(self, parent, session):
+    def __init__(self, parent, controller):
         """Initialize DepartmentList widgets, load departments and fill lb."""
         tk.Frame.__init__(self, parent)
-        self.session = session
+        self.controller = controller
 
         self.department_listbox = tk.Listbox(self, 
                                              height=6, width=25, 
@@ -268,7 +265,8 @@ class DepartmentList(tk.Frame):
                                      rowspan=6, columnspan=3,
                                      pady=8)
         
-        self.dep_list = [d.name for d in session.query(Department).all()]
+        self.dep_list = [d.name for d in 
+                         self.controller.session.query(Department).all()]
         for d in self.dep_list:
             self.department_listbox.insert(tk.END, d)
         
@@ -296,8 +294,8 @@ class DepartmentList(tk.Frame):
     def add_department(self):
         """Add department from listbox and database."""
         dep = Department(self.dep_name.get())
-        self.session.add(dep)
-        self.session.commit()
+        self.controller.session.add(dep)
+        self.controller.session.commit()
         
         self.department_listbox.insert(tk.END, self.dep_name.get())
         self.cal.dep_list.append(self.dep_name.get())
@@ -309,11 +307,11 @@ class DepartmentList(tk.Frame):
             return
         index = self.department_listbox.curselection()[0]
         dep_str = self.department_listbox.get(index)
-        db_department = (self.session.query(Department)
+        db_department = (self.controller.session.query(Department)
                                      .filter(Department.name == dep_str)
                                      .first())
-        self.session.delete(db_department)
-        self.session.commit()
+        self.controller.session.delete(db_department)
+        self.controller.session.commit()
         self.department_listbox.delete(index)
         del self.cal.dep_list[index]
         self.cal.d['menu'].delete(index)
@@ -331,12 +329,10 @@ class EmployeeInfoForm(tk.Frame):
     the database.
     """
 
-    def __init__(self, parent, session, e_page):
+    def __init__(self, parent, controller):
         """Init widgets to display employee information and save button."""
         tk.Frame.__init__(self, parent)
-        
-        self.session = session
-        self.e_page = e_page
+        self.controller = controller
           
         # First name widgets
         self.f_name_var = tk.StringVar(self)
@@ -464,7 +460,7 @@ class EmployeeInfoForm(tk.Frame):
     def load_employee_form(self, employee_id):
         """Load employee information into the various fields."""
         if employee_id != None and employee_id != "New Employee":
-            employee = self.e_page.get_employee(employee_id)
+            employee = self.controller.get_employee(employee_id)
             self.f_name_var.set(employee.first_name)
             self.l_name_var.set(employee.last_name)
             self.e_id.set(employee.employee_id)
@@ -515,9 +511,9 @@ class EmployeeInfoForm(tk.Frame):
         if self.employee_id_conflict(new_e_id):
             errors.append("Employee ID %s is already taken." % new_e_id)
         if errors == []:
-            employee_id = self.e_page.curr_sel_employee
+            employee_id = self.controller.curr_sel_employee
             if employee_id != None and employee_id != "New Employee":
-                employee = self.e_page.get_employee(employee_id)
+                employee = self.controller.get_employee(employee_id)
                 employee.first_name = f_name
                 employee.last_name = l_name
                 employee.employee_id = new_e_id
@@ -530,8 +526,8 @@ class EmployeeInfoForm(tk.Frame):
                 employee.medical = medical_value
                 employee.workmans_comp = work_comp
                 employee.social_security = social   
-                self.session.commit()
-                self.e_page.update_e_list(new_e_id)
+                self.controller.session.commit()
+                self.controller.update_e_list(new_e_id)
             elif employee_id == "New Employee": 
                 employee = Employee(new_e_id, 
                                     f_name, l_name,
@@ -544,9 +540,9 @@ class EmployeeInfoForm(tk.Frame):
                                     medical_value,
                                     work_comp, 
                                     social)
-                self.session.add(employee)
-                self.session.commit()
-                self.e_page.update_e_list(new_e_id)
+                self.controller.session.add(employee)
+                self.controller.session.commit()
+                self.controller.update_e_list(new_e_id)
         else:
             print "Errors were: ", errors
             # Replace with warning dialog
@@ -559,7 +555,7 @@ class EmployeeInfoForm(tk.Frame):
         id and that employee is not currently selected.
         """
         
-        potential_employee = (self.session
+        potential_employee = (self.controller.session
                                   .query(Employee)
                                   .filter(Employee.employee_id == id)
                                   .first())
@@ -599,12 +595,10 @@ class EmployeeRepeatUnavailable(tk.Frame):
     DAYS_TO_NUM = {'Sunday':6, 'Monday':0, 'Tuesday':1, 'Wednesday':2,
                     'Thursday':3, 'Friday':4, 'Saturday':5}
 
-    def __init__(self, parent, session, e_page):
+    def __init__(self, parent, controller):
         """Initialize widgets for adding and removing repeat unavailabilities."""
         tk.Frame.__init__(self, parent)
-    
-        self.session = session
-        self.e_page = e_page
+        self.controller = controller
         
         self.unavailable_d_lb = tk.Listbox(self, height=18, width=30, 
                                            font=('Tahoma', 12, tk.NORMAL))
@@ -661,7 +655,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
         self.unavailable_d_lb.delete(0, tk.END)
         self.unav_days = []
         if employee_id != None and employee_id != "New Employee":
-            employee = self.e_page.get_employee(employee_id)
+            employee = self.controller.get_employee(employee_id)
             self.unav_days = employee.get_unav_days()
             self.unav_days.sort(key=lambda v: v.start_time)
             self.unav_days.sort(key=lambda v: v.weekday)
@@ -678,11 +672,11 @@ class EmployeeRepeatUnavailable(tk.Frame):
         self.unavailable_d_lb.delete(index)
         
         unav_time_id = self.unav_days[index]
-        unav_time = (self.session.query(UnavailableTime)
+        unav_time = (self.controller.session.query(UnavailableTime)
                                 .filter(UnavailableTime.id == unav_time_id)
                                 .first())
-        self.session.delete(unav_time)
-        self.session.commit()
+        self.controller.session.delete(unav_time)
+        self.controller.session.commit()
         
         del self.unav_days[index]
         
@@ -694,18 +688,18 @@ class EmployeeRepeatUnavailable(tk.Frame):
         weekday = self.DAYS_TO_NUM[self.unav_weekday_var.get()]
         
         if start_time < end_time:
-            employee_id = self.e_page.curr_sel_employee
+            employee_id = self.controller.curr_sel_employee
             if employee_id != None and employee_id != "New Employee":
 
                 unav_time = UnavailableTime(start_time, 
                                             end_time,
                                             weekday,
                                             employee_id)
-                self.session.add(unav_time)
-                self.session.commit()
-                employee = self.e_page.get_employee(employee_id)
+                self.controller.session.add(unav_time)
+                self.controller.session.commit()
+                employee = self.controller.get_employee(employee_id)
                 employee.add_unav_time(unav_time)
-                self.session.commit()
+                self.controller.session.commit()
                 # Insert newly added unavailable to listbox for display
                 self.unavailable_d_lb.insert(tk.END, 
                                              unav_time.get_str())
@@ -722,11 +716,10 @@ class EmployeeVacations(tk.Frame):
     to be assigned is supplied by the controller.
     """ 
         
-    def __init__(self, parent, session, e_page):
+    def __init__(self, parent, controller):
         """Initialize widgets for adding and removing vacations."""
         tk.Frame.__init__(self, parent)
-        self.session = session
-        self.e_page = e_page
+        self.controller = controller
         
         # Vacation and Absent Schedules
         self.future_past_nb = ttk.Notebook(self)
@@ -796,7 +789,7 @@ class EmployeeVacations(tk.Frame):
         current_date = datetime.datetime(now.year, now.month, 1, 0, 0 ,0)
         vacations = []
         if employee_id != None and employee_id != "New Employee":
-            employee = self.e_page.get_employee(employee_id)
+            employee = self.controller.get_employee(employee_id)
             vacations = employee.get_absent_schedules()
             self.future_vacations = [v for v in vacations if v.end_datetime >= current_date]
             self.past_vacations = [v for v in vacations if v.end_datetime < current_date]
@@ -839,21 +832,21 @@ class EmployeeVacations(tk.Frame):
         
         if start_datetime <= end_datetime:
         
-            employee_id = self.e_page.curr_sel_employee
+            employee_id = self.controller.curr_sel_employee
             
             conflicting_schedules = []
             
             if employee_id != None and employee_id != "New Employee":
-                employee = self.e_page.get_employee(employee_id)
+                employee = self.controller.get_employee(employee_id)
                 for t in employee.schedules:
                     if start_datetime < t.end_datetime and t.start_datetime < end_datetime:
                         conflicting_schedules.append(t)   
                 if conflicting_schedules == []:
                     vacation = Vacation(start_datetime, end_datetime, 
                                         employee_id)
-                    self.session.add(vacation)
+                    self.controller.session.add(vacation)
                     employee.add_unavailable_schedule(vacation)
-                    self.session.commit()
+                    self.controller.session.commit()
                     self.future_v_lb.insert(tk.END, 
                                             vacation.get_str_dates())
                     self.future_vacations.append(vacation.id)
@@ -875,13 +868,13 @@ class EmployeeVacations(tk.Frame):
         
         self.future_v_lb.delete(index)
         vacation_id = self.future_vacations[index]
-        vacation = (self.session.query(Vacation)
+        vacation = (self.controller.session.query(Vacation)
                                 .filter(Vacation.id == vacation_id)
                                 .first())
         
         
-        self.session.delete(vacation)
-        self.session.commit()
+        self.controller.session.delete(vacation)
+        self.controller.session.commit()
         
         del self.future_vacations[index]
         
@@ -894,12 +887,12 @@ class EmployeeVacations(tk.Frame):
         
         self.past_v_lb.delete(index)
         vacation_id = self.past_vacations[index]
-        vacation = (self.session.query(Vacation)
+        vacation = (self.controller.session.query(Vacation)
                                 .filter(Vacation.id == vacation_id)
                                 .first())
         
-        self.session.delete(vacation)
-        self.session.commit()
+        self.controller.session.delete(vacation)
+        self.controller.session.commit()
         
         del self.past_vacations[index]
     

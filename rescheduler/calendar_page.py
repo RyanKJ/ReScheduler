@@ -175,7 +175,7 @@ class CalendarMenu(tk.Frame):
     Attributes:
         MONTH_TO_INT: dict for converting string month names to int.
         parent: tk.Frame parent for all child widgets.
-        c_page: calendar_page, a quasi-controller object.
+        controller: A controller object.
         dep_list: String list of all departments.
         department_var: tk.StringVar for representing selected department.
         month_var: tk.StringVar for representing selected month.
@@ -187,19 +187,19 @@ class CalendarMenu(tk.Frame):
                     "May":5, "June":6, "July":7, "August":8, "September":9, 
                     "October":10, "November":11, "December":12}
 
-    def __init__(self, parent, c_page, date, dep_list):
+    def __init__(self, parent, controller, date, dep_list):
     
         """Initialize calendar selection and saving widgets.
         
         Args:
             parent: tk.Frame container for child widgets.
-            c_page: Quasi-controller class to call other widget collections.
+            controller: Controller class to call other widget collections.
             date: datetime.date object containing present month and year.
             dep_list: List of strings for department names.
         """
         
         self.parent = parent
-        self.c_page = c_page      
+        self.controller = controller      
         self.dep_list = dep_list
 
         # tk.Frame to hold the canvas which will display the y-axis scrollbar
@@ -291,18 +291,18 @@ class CalendarMenu(tk.Frame):
         month = self.MONTH_TO_INT[self.month_var.get()]
         year = int(self.year_var.get())
         date = datetime.date(year, month, 1)
-        self.c_page.create_calendar(dep, date)
+        self.controller.create_calendar(dep, date)
         
         
     def save_calendar_to_excel(self):
         """Call save to excel method."""
         version = self.version_var.get()
-        self.c_page.save_calendar_to_excel(version)
+        self.controller.save_calendar_to_excel(version)
         
         
     def autofill(self):
         """Call autofill method."""
-        self.c_page.autofill()
+        self.controller.autofill()
         
         
 		
@@ -315,7 +315,7 @@ class CalendarDisplay(tk.Frame):
 
     Attributes:
         parent: tk.Frame container for child widgets.
-        c_page: Quasi-controller class to call other widget collections.
+        controller: Controller class to call other widget collections.
         schedule_editor: UI for user to add schedules to calendar.
         dep: String for department name of current selected calendar.
         date: datetime.date for current selected calendar.
@@ -331,7 +331,7 @@ class CalendarDisplay(tk.Frame):
     DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
             'Thursday', 'Friday', 'Saturday']
 
-    def __init__(self, parent, c_page, schedule_editor, date, dep):
+    def __init__(self, parent, controller, schedule_editor, date, dep):
         """Initialize widgets for interactive calendar.
         
         Initializes the various container widgets such as canvas and its 
@@ -340,14 +340,14 @@ class CalendarDisplay(tk.Frame):
         
         Args:
             parent: A parent tk.Frame object.
-            c_page: Quasi-controller class to call other widget collections.
+            controller: Controller class to call other widget collections.
             schedule_editor: UI for user to add schedules to calendar.
             date: datetime.date for current selected calendar.
             dep: String for department name of current selected calendar.
         """
         
         self.parent = parent
-        self.c_page = c_page
+        self.controller = controller
         self.schedule_editor = schedule_editor
        
         self.dep = dep
@@ -458,7 +458,7 @@ class CalendarDisplay(tk.Frame):
                 if day_number != 0:
                     date = datetime.date(self.date.year, self.date.month, 
                                          day_number)
-                day_model = DayModel(self.c_page.session, self, 
+                day_model = DayModel(self.controller.session, self, 
                                      date, i, j, self.dep)
                 day_vc = DayViewController(self.calendar_frame, self, 
                                            self.schedule_editor, day_model)
@@ -539,7 +539,7 @@ class CalendarDisplay(tk.Frame):
                     
                     
     def update_costs(self):
-        self.c_page.update_costs()
+        self.controller.update_costs()
     
     
     
@@ -1640,20 +1640,20 @@ class ScheduleEditor(tk.Frame):
     
     Attributes:
         parent: tk.Frame container for the child widgets.   
-        c_page: Quasi-controller object for ScheduleEditor to
-            know calendar to add schedules to.
+        controller: Controller object for ScheduleEditor to know calendar to 
+            add schedules to.
     """
 
-    def __init__(self, parent, calendar_page):
+    def __init__(self, parent, controller):
         """Initialize interface for user to add schedules to calendar.
 
         Args:
             parent: tk.Frame container for the child widgets.   
-            calendar_page: Quasi-controller object for ScheduleEditor to
+            controller: Controller object for ScheduleEditor to
                 know calendar to add schedules to.
         """
         
-        self.c_page = calendar_page
+        self.controller = controller
         self.parent = parent
         
         # LabelFrame container for all child subwidgets
@@ -1709,7 +1709,7 @@ class ScheduleEditor(tk.Frame):
         and view.
         """
 
-        cal = self.c_page.calendar_display
+        cal = self.controller.calendar_display
         day_vc = cal.current_clicked_day
         day_model = day_vc.day_model
         schedule_date = datetime.date(cal.date.year, cal.date.month, 
@@ -1763,7 +1763,7 @@ class CalendarCalculator(tk.Frame):
     Attributes:
         parent: tk.Frame container for the child widgets.   
         session: An sqlalchemy session object using sqlite3.
-        cal: Quasi-controller object for ScheduleEditor to
+        cal: Controller object for ScheduleEditor to
             know calendar to add schedules to.
         percentage_dict: dictionary object that maps strings of department
             names to a tk.StringVar object that represent the percentage of 
@@ -1777,7 +1777,7 @@ class CalendarCalculator(tk.Frame):
         Args:
             parent: tk.Frame container for the child widgets.   
             session: An sqlalchemy session object using sqlite3.
-            calendar_page: Quasi-controller object for ScheduleEditor to
+            controller: Controller object for ScheduleEditor to
                 know calendar to add schedules to.
             dep_list: A string list of all departments.
         """
