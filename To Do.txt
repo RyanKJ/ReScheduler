@@ -1,18 +1,5 @@
 To Do list:
 
-
-Pythonisize Code:
-Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
-    -make attributes and private methods pythonic
-    -Get rid of calls to constants like DAY, replace with library calls:
-        -MONTHS
-        -DAYS
-        -Letters for export version: alphabet
-
-
-
-
-To Do General List:
 1) Fix issue with different month getting same value as current month
 2) Encapsualte tk style in dict?
 3) Make export to excel work well: no need for template
@@ -34,6 +21,7 @@ To Do General List:
 
 
 What are the user cases where a dialogue box is useful?
+
 1) The user tries to create a schedule whos end time is less then or equal
     to the start time
 3) User wants to save an employee but enter invalid information or 
