@@ -383,14 +383,7 @@ class CalendarDisplay(tk.Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"), 
                               width=1060, height=1200)
         	
-    
-    def click_reset(self):
-        """Display all schedules for each day then select first day."""
-        self.set_current_clicked_day(self.day_vc_list[0])
-        for d in reversed(self.day_vc_list):
-            d.set_to_clicked("<button-1>")
-            
-        
+  
     def set_current_clicked_day(self, day):
         """Set current day_vc for calendar_display to be supplied day_vc.
         
@@ -465,6 +458,13 @@ class CalendarDisplay(tk.Frame):
                 self.day_vc_list.append(day_vc)
         # Display schedules and click first day of that month
         self.click_reset()
+        
+        
+    def click_reset(self):
+        """Click every day to display schedules then select first day."""
+        self.set_current_clicked_day(self.day_vc_list[0])
+        for d in reversed(self.day_vc_list):
+            d.set_to_clicked("<button-1>")
         
         
     def clear_calendar(self):
@@ -1799,9 +1799,7 @@ class CalendarCalculator(tk.Frame):
             
             frame = tk.Frame(calc_frame, borderwidth=1)
             frame.pack()
-            title = tk.Label(frame, 
-                                  width=10, height=1,
-                                  text=k)
+            title = tk.Label(frame, width=10, height=1, text=k)
             title.pack(side=tk.LEFT)
             percentage = tk.StringVar(frame)
             self.percentage_dict[k] = percentage
@@ -1812,9 +1810,7 @@ class CalendarCalculator(tk.Frame):
         # Create a special calculator that is the total of all calendars
         frame = tk.Frame(calc_frame, borderwidth=1)
         frame.pack()
-        title = tk.Label(frame, 
-                              width=10, height=1,
-                              text='Total')
+        title = tk.Label(frame, width=10, height=1, text='Total')
         title.pack(side=tk.LEFT)  
         percentage = tk.StringVar(frame)
         self.percentage_dict['Total'] = percentage
