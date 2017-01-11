@@ -4,9 +4,6 @@ To Do list:
 Pythonisize Code:
 Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
     -make attributes and private methods pythonic
-    -Make idioms consistent: tk.LEFT only, replace args like 'left'
-    -Make sure conditionals are pythonic: 
-        -Save method test should have better type checking idioms
     -Get rid of calls to constants like DAY, replace with library calls:
         -MONTHS
         -DAYS
@@ -18,25 +15,21 @@ Polish comments, make pythonic variable naming (use sql/openpyxl namespace?)
 To Do General List:
 1) Fix issue with different month getting same value as current month
 2) Encapsualte tk style in dict?
-3) Overhaul save/load/add/remove employee functions for better design: MVC?
-4) Make export to excel work well: no need for template
-5) Add in warning dialogues
-6) Fix autofill
-7) Fix updating department list displaying when adding a new department
-8) Make schedule.department actually linked to db_department, not just string:
+3) Make export to excel work well: no need for template
+4) Add in warning dialogues
+5) Fix autofill
+6) Fix updating department list displaying when adding a new department
+7) Make schedule.department actually linked to db_department, not just string:
     -Department optionmenu's reflect database departments, not pre-determined
      strings.
-9) Clear employee info if employee is removed
-    -Also put widgets in disabled state when no employee clicked?
-10) Change instantiated calendar upon starting program to be next month 
-    of current datetime.datetime.now() month
-11) Add optional arg to TimeEntry for setting default values: kwargs?
-12) Change application icon
-13) Make add_vacation, add_repeat insert new item in sorted order, not at end
-14) Add on more validation for save_employee_info
-15) Add in scrollbars to schedule editor and listboxes on employee page
-16) Get rid of main module, or turn into __init__?
-
+8) Add optional arg to TimeEntry for setting default values: kwargs?
+9) Change application icon
+10) Make add_vacation, add_repeat insert new item in sorted order, not at end
+11) Add on more validation for save_employee_info
+12) Add in scrollbars to schedule editor and listboxes on employee page
+13) Get rid of main module, or turn into __init__?
+14) Replace self.parent with __init__ for tk.Frame inheritance for calendar_page
+    classes
 
 
 
