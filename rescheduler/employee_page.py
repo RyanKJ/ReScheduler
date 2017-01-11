@@ -36,7 +36,7 @@ class EmployeePage(tk.Frame):
         
         # Left Panel Frame Widgets for Employee/Department Lists
         employee_department_nb = ttk.Notebook(self)
-        employee_department_nb.pack(side="left", fill="both", expand=True,
+        employee_department_nb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
                                     padx=10, pady=10)
         
         self.employee_list_frame = tk.Frame(employee_department_nb)
@@ -56,7 +56,7 @@ class EmployeePage(tk.Frame):
         # Center Panel Frame Widgets for Employee Info Form
         self.employee_info_frame = ttk.LabelFrame(self,
                                                   text='Employee Information')
-        self.employee_info_frame.pack(side="left", fill="both", expand=True,
+        self.employee_info_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
                                       padx=10, pady=24, anchor='center')
         self.e_info_form = EmployeeInfoForm(self.employee_info_frame, self)     
         self.e_info_form.pack()
@@ -64,11 +64,11 @@ class EmployeePage(tk.Frame):
 
         # Right Panel Frame Widgets for Various Unavailability Lists
         self.unavailability_nb = ttk.Notebook(self)
-        self.unavailability_nb.pack(side="left", fill="both", expand=True,
+        self.unavailability_nb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
                                     padx=10, pady=10)
 
         self.repeat_unav_frame = tk.Frame(self.unavailability_nb,)
-        self.repeat_unav_frame.pack(side="left", fill="both", expand=True,
+        self.repeat_unav_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
                                       padx=10, pady=24, anchor='center')                            
         self.e_unav_form = EmployeeRepeatUnavailable(self.repeat_unav_frame, 
                                                      self) 
@@ -76,7 +76,7 @@ class EmployeePage(tk.Frame):
                                       
                                       
         self.vacation_frame = tk.Frame(self.unavailability_nb)
-        self.vacation_frame.pack(side="left", fill="both", expand=True,
+        self.vacation_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
                                       padx=10, pady=24, anchor='center')
         self.e_vacation_form = EmployeeVacations(self.vacation_frame, 
                                                  self)  
@@ -101,6 +101,13 @@ class EmployeePage(tk.Frame):
         self.e_info_form.load_employee_form(employee_id)
         self.e_unav_form.load_unav_times(employee_id)
         self.e_vacation_form.load_vacations(employee_id)
+        
+    
+    def clear_employee_data(self):
+        """Remove all employee information from various widgets."""
+        self.e_info_form.clear_employee_form()
+        self.e_unav_form.clear_unav_times()
+        self.e_vacation_form.clear_vacations()
         
         
     def update_e_list(self, employee_id):
@@ -192,6 +199,7 @@ class EmployeeList(tk.Frame):
             return 
         index = self.employee_listbox.curselection()[0]
         self.employee_listbox.delete(index)
+        self.controller.clear_employee_data()
         # Employee in listbox may be new employee not in parallel list
         if index < len(self.employee_id_list):
             employee_id = self.employee_id_list[index]
@@ -252,7 +260,7 @@ class DepartmentList(tk.Frame):
     two buttons to add and remove departments.
     """
     
-    dep_list = []
+    dep_id_list = []
 
     def __init__(self, parent, controller):
         """Initialize DepartmentList widgets, load departments and fill lb."""
@@ -266,10 +274,7 @@ class DepartmentList(tk.Frame):
                                      rowspan=6, columnspan=3,
                                      pady=8)
         
-        self.dep_list = [d.name for d in 
-                         self.controller.session.query(Department).all()]
-        for d in self.dep_list:
-            self.department_listbox.insert(tk.END, d)
+        self.load_listbox_and_parallel_list()
         
         self.add_department_button = ttk.Button(self, 
                                                text='Add Department', 
@@ -292,14 +297,24 @@ class DepartmentList(tk.Frame):
         self.remove_department_button.grid(row=20, column=2)
         
         
+    def load_listbox_and_parallel_list(self):
+        """Load listbox of department names and parallel list of ids."""
+        department_db_list = self.controller.session.query(Department).all()
+        
+        for d in department_db_list:
+            self.department_listbox.insert(tk.END, d.name)
+            
+        self.dep_id_list = [d.id for d in department_db_list]
+        
+        
     def add_department(self):
         """Add department from listbox and database."""
-        dep = Department(self.dep_name.get())
-        self.controller.session.add(dep)
+        department = Department(self.dep_name.get())
+        self.controller.session.add(department)
         self.controller.session.commit()
         
-        self.department_listbox.insert(tk.END, self.dep_name.get())
-        self.cal.dep_list.append(self.dep_name.get())
+        self.department_listbox.insert(tk.END, department.name)
+        self.cal.dep_id_list.append(department.id)
         
         
     def remove_department(self):
@@ -307,15 +322,14 @@ class DepartmentList(tk.Frame):
         if self.department_listbox.curselection() == ():
             return
         index = self.department_listbox.curselection()[0]
-        dep_str = self.department_listbox.get(index)
+        dep_id = self.dep_id_list[index]
         db_department = (self.controller.session.query(Department)
-                                     .filter(Department.name == dep_str)
-                                     .first())
+                                        .filter(Department.id == dep_id)
+                                        .first())
         self.controller.session.delete(db_department)
         self.controller.session.commit()
         self.department_listbox.delete(index)
-        del self.cal.dep_list[index]
-        self.cal.d['menu'].delete(index)
+        del self.dep_id_list[index]
         
                    
         
@@ -476,6 +490,22 @@ class EmployeeInfoForm(tk.Frame):
             self.medical_var.set(employee.medical)
         else:
             self.add_new_e_info()
+            
+            
+    def clear_employee_form(self):
+        """Clear all information in all employee info fields."""
+        self.f_name_var.set("")
+        self.l_name_var.set("")
+        self.e_id.set("")
+        self.e_wage.set("")
+        self.d_hours.set("")
+        self.dep1.set("None")
+        self.dep2.set("None")
+        self.dep3.set("None")
+        self.ovrt_var.set("")
+        self.work_comp_var.set("")
+        self.soc_sec_var.set("")
+        self.medical_var.set("")
           
     
     def save_employee_info(self):
@@ -653,8 +683,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
         
     def load_unav_times(self, employee_id):       
         """Load repeat unavailabilities associated with employee."""
-        self.unavailable_d_lb.delete(0, tk.END)
-        self.unav_days = []
+        self.clear_unav_times()
         if employee_id != None and employee_id != "New Employee":
             employee = self.controller.get_employee(employee_id)
             self.unav_days = employee.get_unav_days()
@@ -662,8 +691,14 @@ class EmployeeRepeatUnavailable(tk.Frame):
             self.unav_days.sort(key=lambda v: v.weekday)
             for u in self.unav_days:
                 self.unavailable_d_lb.insert(tk.END, u.get_str())
-            self.unav_days = [u.id for u in self.unav_days]                                 
-            
+            self.unav_days = [u.id for u in self.unav_days]           
+
+
+    def clear_unav_times(self):       
+        """Remove all repeat unavailabilities associated with employee."""
+        self.unavailable_d_lb.delete(0, tk.END)
+        self.unav_days = []
+         
             
     def remove_unav_time(self):
         """Remove repeat unavailability clicked from listbox."""
@@ -782,10 +817,7 @@ class EmployeeVacations(tk.Frame):
         
     def load_vacations(self, employee_id):
         """Load past and future vacations associated with employee."""
-        self.future_v_lb.delete(0, tk.END)
-        self.past_v_lb.delete(0, tk.END)
-        self.future_vacations = []
-        self.past_vacations = []
+        self.clear_vacations()
         now = datetime.datetime.now()
         current_date = datetime.datetime(now.year, now.month, 1, 0, 0 ,0)
         vacations = []
@@ -804,6 +836,14 @@ class EmployeeVacations(tk.Frame):
             # We shed the ORM representation and keep parallel list of id's
             self.future_vacations = [v.id for v in self.future_vacations]
             self.past_vacations = [v.id for v in self.past_vacations]
+   
+   
+    def clear_vacations(self):
+        """Remove past and future vacations associated with employee."""
+        self.future_v_lb.delete(0, tk.END)
+        self.past_v_lb.delete(0, tk.END)
+        self.future_vacations = []
+        self.past_vacations = []
    
     
     def add_vacation(self):

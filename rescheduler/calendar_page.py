@@ -123,7 +123,7 @@ class CalendarPage(tk.Frame):
                                                 self.schedule_editor, 
                                                 date, dep_list[0])
                     
-        self.side_info_frame.pack(side=tk.LEFT, fill="both", expand=True)                                           
+        self.side_info_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)                                           
         self.calendar_calc = CalendarCalculator(self.side_info_frame, 
                                                 session,
                                                 self.calendar_display,
@@ -204,7 +204,7 @@ class CalendarMenu(tk.Frame):
 
         # tk.Frame to hold the canvas which will display the y-axis scrollbar
         calendar_menu_frame = tk.Frame(self.parent)
-        calendar_menu_frame.pack(side="top", fill="both", expand=True)
+        calendar_menu_frame.pack(side="top", fill=tk.BOTH, expand=True)
         
         # Department selection widgets
         department_label = ttk.Label(calendar_menu_frame, 
@@ -357,7 +357,7 @@ class CalendarDisplay(tk.Frame):
         
         # Container and scrollbar widgets
         calendar_holder = tk.Frame(self.parent)
-        calendar_holder.pack(side="left")
+        calendar_holder.pack(side=tk.LEFT)
         self.canvas = tk.Canvas(calendar_holder, 
                                 borderwidth=0)
         self.calendar_frame = tk.Frame(self.canvas)
@@ -365,8 +365,8 @@ class CalendarDisplay(tk.Frame):
                                      orient="vertical", 
                                      command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right",fill="y")
-        self.canvas.pack(side="left")
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT)
         self.canvas.create_window((0,0), 
                                   window=self.calendar_frame, 
                                   anchor=tk.NW)
@@ -1658,7 +1658,7 @@ class ScheduleEditor(tk.Frame):
         
         # LabelFrame container for all child subwidgets
         self.schedule_frame = ttk.LabelFrame(self.parent, text="Schedule Editor")
-        self.schedule_frame.pack(fill="both")
+        self.schedule_frame.pack(fill=tk.BOTH)
         self.schedule_add_frame = tk.Frame(self.schedule_frame)
         self.schedule_add_frame.pack()
         self.add_schedule_button = ttk.Button(self.schedule_add_frame, 
