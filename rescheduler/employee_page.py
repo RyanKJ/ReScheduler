@@ -241,6 +241,7 @@ class EmployeeList(tk.Frame):
             self.employee_listbox.selection_set(index)
         else:
             self.employee_id_list.append(employee_id)
+            self.controller.curr_sel_employee = employee_id
             list_of_names = self.employee_listbox.get(0, tk.END)
             for text in list_of_names:
                 if text == "New Employee":

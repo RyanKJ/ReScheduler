@@ -499,10 +499,10 @@ class CalendarDisplay(tk.Frame):
                                            vertical='center', 
                                            wrapText=True)
         
-        filename = '%s-%s%s-ver %s.xlsx' % (self.dep,
-                                            calendar.month_name[self.date.month], 
-                                            self.date.year,
-                                            version_var.get())
+        filename = '%s %s %s ver %s.xlsx' % (self.dep,
+                                             calendar.month_name[self.date.month], 
+                                             self.date.year,
+                                             version)
                                
         file_opt = {}
         file_opt['defaultextension'] = '.xlsx'
@@ -524,16 +524,25 @@ class CalendarDisplay(tk.Frame):
         algorithm) employee and set as that schedule's assign employee.
         """
    
-        for d in self.day_vc_list:
-            schedules = d.schedule_widgets
-            for s in schedules:
-                s.set_to_clicked("<button-1>")
-                # Case where no employee assigned and potential employees exist
-                if s.db_schedule.employee_id is None and s.eligable_list != []:
-                    s.eligable_listbox.selection_set(0)
-                    s.eligable_lb_click('<<ListboxSelect>>')
-                    
-                    
+        for day_vc in self.day_vc_list:
+            for e_vc_id in day_vc.eligable_vc:
+                e_vc = day_vc.eligable_vc[e_vc_id]
+                e_model = e_vc.e_model
+                # -1 means no employee is assigned to schedule yet
+                if e_model.get_assigned_employee == -1:
+                    e_vc.display_eligables()
+                    eligable_lb = e_vc.eligable_listbox
+                    list_of_names = eligable_lb.get(0, tk.END)
+                    for name in list_of_names:
+                        pattern = r'\(\w\)'
+                        # When there is no warning flag for assignment conflict
+                        if not re.search(pattern, name):
+                            index = list_of_names.index(name)
+                            e_model.assign_employee_schedule(index)
+                            
+                            
+                
+
     def update_costs(self):
         self.controller.update_costs()
     
@@ -927,7 +936,7 @@ class DayViewController(tk.Frame):
         
         week_row_header = str((self.day_model.week_number * 2) + 4)
         week_row_body = str((self.day_model.week_number * 2) + 5)
-        day_col = self.DAY_COL_EXCEL[self.day_model.date.weekday()]
+        day_col = self.DAY_COL_EXCEL[self.day_model.weekday]
 
         return [day_col + week_row_header, day_col + week_row_body]
     
