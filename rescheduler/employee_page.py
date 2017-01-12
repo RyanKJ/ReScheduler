@@ -12,7 +12,8 @@ from orm_models import Employee, Department, Vacation, UnavailableTime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-
+MEDIUM_FONT = ('Tahoma', 12, tk.NORMAL)
+LARGE_FONT = ('Tahoma', 14, tk.NORMAL)
 
 class EmployeePage(tk.Frame):
     """
@@ -143,7 +144,7 @@ class EmployeeList(tk.Frame):
         self.employee_listbox = tk.Listbox(self, 
                                            exportselection=0, 
                                            height=14, width=25, 
-                                           font=('Tahoma', 14, tk.NORMAL))
+                                           font=LARGE_FONT)
         self.employee_listbox.grid(row=1, column=0, 
                                    rowspan=6, columnspan=3,
                                    pady=8)
@@ -269,7 +270,7 @@ class DepartmentList(tk.Frame):
 
         self.department_listbox = tk.Listbox(self, 
                                              height=6, width=25, 
-                                             font=('Tahoma', 14, tk.NORMAL))
+                                             font=LARGE_FONT)
         self.department_listbox.grid(row=11, column=0, 
                                      rowspan=6, columnspan=3,
                                      pady=8)
@@ -282,12 +283,12 @@ class DepartmentList(tk.Frame):
         self.add_department_button.grid(row=20, column=0)
         self.add_dep_label = tk.Label(self, 
                                       text="New Department:", 
-                                      font=('Tahoma', 14, tk.NORMAL))
+                                      font=LARGE_FONT)
         self.add_dep_label.grid(row=21, column=0, columnspan=2)
         
         self.dep_name = tk.StringVar(self)
         self.dep_entry = ttk.Entry(self, 
-                                  font=('Tahoma', 14, tk.NORMAL), 
+                                  font=LARGE_FONT, 
                                   textvariable=self.dep_name)
         self.dep_entry.grid(row=21, column=2)
         
@@ -352,46 +353,46 @@ class EmployeeInfoForm(tk.Frame):
         # First name widgets
         self.f_name_var = tk.StringVar(self)
         self.e_first_name_label = tk.Label(self, text="First Name: ", 
-                                           font=('Tahoma', 12, tk.NORMAL))
+                                           font=MEDIUM_FONT)
         self.e_first_name_label.grid(row=2, column=0, sticky=tk.E)
         self.e_first_name_entry = ttk.Entry(self, 
-                                            font=('Tahoma', 12, tk.NORMAL), 
+                                            font=MEDIUM_FONT, 
                                             textvariable=self.f_name_var)
         self.e_first_name_entry.grid(row=2, column=1, sticky=tk.W)
         # Last name widgets
         self.l_name_var = tk.StringVar(self)
         self.e_last_name_label = tk.Label(self, text="Last Name: ", 
-                                          font=('Tahoma', 12, tk.NORMAL))
+                                          font=MEDIUM_FONT)
         self.e_last_name_label.grid(row=3, column=0, sticky=tk.E)
         self.e_last_name_entry = ttk.Entry(self, 
-                                           font=('Tahoma', 12, tk.NORMAL), 
+                                           font=MEDIUM_FONT, 
                                            textvariable=self.l_name_var)
         self.e_last_name_entry.grid(row=3, column=1, sticky=tk.W)
 
         # Employee ID Number Widgets
         self.e_id = tk.IntVar(self)
         self.e_id_label = tk.Label(self, text="Employee ID Number: ", 
-                                   font=('Tahoma', 12, tk.NORMAL))
+                                   font=MEDIUM_FONT)
         self.e_id_label.grid(row=4, column=0, sticky=tk.E)
-        self.e_id_entry = ttk.Entry(self, font=('Tahoma', 12, tk.NORMAL), 
+        self.e_id_entry = ttk.Entry(self, font=MEDIUM_FONT, 
                                     textvariable=self.e_id)
         self.e_id_entry.grid(row=4, column=1, sticky=tk.W)
         # Wage Spinbox
         self.e_wage = tk.DoubleVar(self)
         self.e_wage_label = tk.Label(self, 
                                      text="Wage: ", 
-                                     font=('Tahoma', 12, tk.NORMAL))
+                                     font=MEDIUM_FONT)
         self.e_wage_label.grid(row=5, column=0, sticky=tk.E)
-        self.e_wage_sb = ttk.Entry(self, font=('Tahoma', 12, tk.NORMAL), 
+        self.e_wage_sb = ttk.Entry(self, font=MEDIUM_FONT, 
                                    textvariable=self.e_wage)
         self.e_wage_sb.grid(row=5, column=1, sticky=tk.W)
         # Desired Hours Spinbox
         self.d_hours = tk.StringVar(self)
         self.e_dhours_label = tk.Label(self, text="Desired Hours: ", 
-                                       font=('Tahoma', 12, tk.NORMAL))
+                                       font=MEDIUM_FONT)
         self.e_dhours_label.grid(row=6, column=0, sticky=tk.E)
         self.e_dhours_sb = tk.Spinbox(self, from_=0, to=70, 
-                                      font=('Tahoma', 12, tk.NORMAL), 
+                                      font=MEDIUM_FONT, 
                                       textvariable=self.d_hours)
         self.e_dhours_sb.grid(row=6, column=1, sticky=tk.W)
         # Deparment Spinboxes
@@ -403,67 +404,66 @@ class EmployeeInfoForm(tk.Frame):
         # Primary Department
         self.p_dep_label = tk.Label(self, 
                                     text="Primary Department: ", 
-                                    font=('Tahoma', 12, tk.NORMAL))
+                                    font=MEDIUM_FONT)
         self.p_dep_label.grid(row=7, column=0, sticky=tk.E)
         self.p_dep_sb = tk.Spinbox(self, 
                                    values=self.departments, 
-                                   font=('Tahoma', 12, tk.NORMAL), 
+                                   font=MEDIUM_FONT, 
                                    textvariable=self.dep1, 
                                    wrap=True)
         self.p_dep_sb.grid(row=7, column=1, sticky=tk.W)
         # Alternate Department #1
         self.alt1_dep_label = tk.Label(self, 
                                        text="Alternate Department #1: ", 
-                                       font=('Tahoma', 12, tk.NORMAL))
+                                       font=MEDIUM_FONT)
         self.alt1_dep_label.grid(row=8, column=0, sticky=tk.E)
         self.alt1_dep_sb = tk.Spinbox(self, 
                                       values=self.departments, 
-                                      font=('Tahoma', 12, tk.NORMAL), 
+                                      font=MEDIUM_FONT, 
                                       textvariable=self.dep2, 
                                       wrap=True)
         self.alt1_dep_sb.grid(row=8, column=1, sticky=tk.W)
         # Alternate Department #2
         self.alt2_dep_label = tk.Label(self, 
                                        text="Alternate Department #2: ", 
-                                       font=('Tahoma', 12, tk.NORMAL))
+                                       font=MEDIUM_FONT)
         self.alt2_dep_label.grid(row=9, column=0, sticky=tk.E)
         self.alt2_dep_sb = tk.Spinbox(self, 
                                       values=self.departments, 
-                                      font=('Tahoma', 12, tk.NORMAL), 
+                                      font=MEDIUM_FONT, 
                                       textvariable=self.dep3, wrap=True)
         self.alt2_dep_sb.grid(row=9, column=1, sticky=tk.W)
         # Overtime widgets
         self.ovrt_var = tk.StringVar(self)
         self.ovrt_label = tk.Label(self, text="Over Time: ", 
-                                   font=('Tahoma', 12, tk.NORMAL))
+                                   font=MEDIUM_FONT)
         self.ovrt_label.grid(row=10, column=0, sticky=tk.E)
-        self.ovrt_entry = ttk.Entry(self, font=('Tahoma', 12, tk.NORMAL), 
+        self.ovrt_entry = ttk.Entry(self, font=MEDIUM_FONT, 
                                     textvariable=self.ovrt_var)
         self.ovrt_entry.grid(row=10, column=1, sticky=tk.W)
         # Workman's Comp widgets
         self.work_comp_var = tk.StringVar(self)
         self.work_comp_label = tk.Label(self, text="Workman's Comp Per $100: ", 
-                                        font=('Tahoma', 12, tk.NORMAL))
+                                        font=MEDIUM_FONT)
         self.work_comp_label.grid(row=11, column=0, sticky=tk.E)
-        self.work_comp_entry = ttk.Entry(self, font=('Tahoma', 12, tk.NORMAL), 
+        self.work_comp_entry = ttk.Entry(self, font=MEDIUM_FONT, 
                                          textvariable=self.work_comp_var)
         self.work_comp_entry.grid(row=11, column=1, sticky=tk.W)
         # Social Security
         self.soc_sec_var = tk.StringVar(self)
         self.soc_sec_label = tk.Label(self, text="Social Security % of Wage: ", 
-                                      font=('Tahoma', 12, tk.NORMAL))
+                                      font=MEDIUM_FONT)
         self.soc_sec_label.grid(row=12, column=0, sticky=tk.E)
-        self.soc_sec_entry = ttk.Entry(self, font=('Tahoma', 12, tk.NORMAL), 
+        self.soc_sec_entry = ttk.Entry(self, font=MEDIUM_FONT, 
                                        textvariable=self.soc_sec_var)
         self.soc_sec_entry.grid(row=12, column=1, sticky=tk.W)
         # Medical Cost Per Month widgets
         self.medical_var = tk.StringVar(self)
         self.medical_label = tk.Label(self, text="Medical Insurance Cost Per Month: ", 
-                                      font=('Tahoma', 12, tk.NORMAL))
+                                      font=MEDIUM_FONT)
         self.medical_label.grid(row=13, column=0, sticky=tk.E)
-        self.medical_entry = ttk.Entry(self, 
-                                            font=('Tahoma', 12, tk.NORMAL), 
-                                            textvariable=self.medical_var)
+        self.medical_entry = ttk.Entry(self, font=MEDIUM_FONT,
+                                       textvariable=self.medical_var)
         self.medical_entry.grid(row=13, column=1, sticky=tk.W)
 
         # Save Changes Button
@@ -632,7 +632,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
         self.controller = controller
         
         self.unavailable_d_lb = tk.Listbox(self, height=18, width=30, 
-                                           font=('Tahoma', 12, tk.NORMAL))
+                                           font=MEDIUM_FONT)
         self.unavailable_d_lb.pack(pady=16)
         
         self.remove_unav_day_b = ttk.Button(self, 
@@ -647,14 +647,14 @@ class EmployeeRepeatUnavailable(tk.Frame):
         # Start time widgets
         self.unav_start_label = tk.Label(self.unav_add_frame, 
                                          text="Start Time: ", 
-                                         font=('Tahoma', 12, tk.NORMAL))
+                                         font=MEDIUM_FONT)
         self.unav_start_label.grid(row=0, column=0)
         self.unav_start_te = TimeEntry(self.unav_add_frame)
         self.unav_start_te.grid(row=0, column=1)
         # End time widgets
         self.unav_end_label = tk.Label(self.unav_add_frame, 
                                        text="End Time: ", 
-                                       font=('Tahoma', 12, tk.NORMAL))
+                                       font=MEDIUM_FONT)
         self.unav_end_label.grid(row=1, column=0)
         self.unav_end_te = TimeEntry(self.unav_add_frame)
         self.unav_end_te.grid(row=1, column=1)
@@ -662,7 +662,7 @@ class EmployeeRepeatUnavailable(tk.Frame):
         
         self.unav_weekday_label = tk.Label(self.unav_add_frame, 
                                            text="Weekday: ", 
-                                           font=('Tahoma', 12, tk.NORMAL))
+                                           font=MEDIUM_FONT)
         self.unav_weekday_label.grid(row=2, column=0)
         self.unav_weekday_var = tk.StringVar(self.unav_add_frame)
         self.unav_weekday_var.set('Sunday')
@@ -769,12 +769,12 @@ class EmployeeVacations(tk.Frame):
         # Future and past vacation listboxes
         self.future_v_lb = tk.Listbox(self.future_v_frame, 
                                       height=18, width=30, 
-                                      font=('Tahoma', 12, tk.NORMAL))
+                                      font=MEDIUM_FONT)
         self.future_v_lb.pack()
         
         self.past_v_lb = tk.Listbox(self.past_v_frame, 
                                     height=18, width=30, 
-                                    font=('Tahoma', 12, tk.NORMAL))
+                                    font=MEDIUM_FONT)
         self.past_v_lb.pack()
         # Parallel list for each listbox to contain the actual database items
         self.future_vacations = []
@@ -793,19 +793,19 @@ class EmployeeVacations(tk.Frame):
         # Widgets for adding a vacation time
         self.start_date_label = tk.Label(self, 
                                          text="Start Date ", 
-                                         font=('Tahoma', 12, tk.NORMAL))
+                                         font=MEDIUM_FONT)
         self.start_date_label.grid(row=2, column=0, sticky=tk.E, pady=5)
         self.start_date = DateEntry(self, 
-                                    font=('Tahoma', 12, tk.NORMAL), 
+                                    font=MEDIUM_FONT, 
                                     border=0)
         self.start_date.grid(row=2, column=1, sticky=tk.W)
         
         self.end_date_label = tk.Label(self, 
                                        text="End Date ", 
-                                       font=('Tahoma', 12, tk.NORMAL))
+                                       font=MEDIUM_FONT)
         self.end_date_label.grid(row=3, column=0, sticky=tk.E)
         self.end_date = DateEntry(self, 
-                                  font=('Tahoma', 12, tk.NORMAL), 
+                                  font=MEDIUM_FONT, 
                                   border=0)
         self.end_date.grid(row=3, column=1, sticky=tk.W)
         

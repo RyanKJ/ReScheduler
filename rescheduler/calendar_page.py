@@ -12,6 +12,7 @@ import calendar
 import bisect
 import collections
 import re
+import string
 from employee_page import (EmployeePage, EmployeeList, DepartmentList, 
                            EmployeeInfoForm, EmployeeRepeatUnavailable, 
                            EmployeeVacations)
@@ -25,7 +26,10 @@ from sqlalchemy.orm import sessionmaker
 from openpyxl import Workbook, load_workbook, cell
 from openpyxl.styles import Alignment
 
-    
+SMALL_FONT = ('Tahoma', 10, tk.NORMAL)
+SMALL_MED_FONT = ('Tahoma', 11, tk.NORMAL)
+MEDIUM_FONT = ('Tahoma', 12, tk.NORMAL)
+
 wb = load_workbook('CalendarTemplate.xlsx')
 ws = wb['Calendar']
 
@@ -263,7 +267,7 @@ class CalendarMenu(tk.Frame):
         self.version_var.set('A')
         version_cb = ttk.Combobox(calendar_menu_frame, 
                                   textvariable=self.version_var,
-                                  values=('A', 'B', 'C', 'D', 'E'),
+                                  values=list(string.ascii_uppercase),
                                   width=5,
                                   state='readonly')
         version_cb.grid(row=0, column=9)
@@ -292,6 +296,7 @@ class CalendarMenu(tk.Frame):
         year = int(self.year_var.get())
         date = datetime.date(year, month, 1)
         self.controller.create_calendar(dep, date)
+        self.controller.update_costs()
         
         
     def save_calendar_to_excel(self):
@@ -382,15 +387,6 @@ class CalendarDisplay(tk.Frame):
     def onFrameConfigure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"), 
                               width=1060, height=1200)
-        	
-  
-    def set_current_clicked_day(self, day):
-        """Set current day_vc for calendar_display to be supplied day_vc.
-        
-        Args:
-            day: day_vc object to be set as the current_clicked_day state.
-        """
-        self.current_clicked_day = day
 		
         
     def get_cal_array(self, year, month):
@@ -462,7 +458,7 @@ class CalendarDisplay(tk.Frame):
         
     def click_reset(self):
         """Click every day to display schedules then select first day."""
-        self.set_current_clicked_day(self.day_vc_list[0])
+        self.current_clicked_day = self.day_vc_list[0]
         for d in reversed(self.day_vc_list):
             d.set_to_clicked("<button-1>")
         
@@ -607,7 +603,7 @@ class DayViewController(tk.Frame):
         self.day_frame.grid(row=coor[0], column=coor[1])
         self.number_label = tk.Label(self.day_frame, 
                                      text=self.day_number,
-                                     font=('Tahoma', 10, tk.NORMAL),
+                                     font=SMALL_FONT,
                                      width=18, height=1, 
                                      anchor=tk.NW, 
                                      bg="white")
@@ -615,7 +611,7 @@ class DayViewController(tk.Frame):
           
         self.schedules_lb = tk.Listbox(self.day_frame, activestyle='none', 
                                        exportselection=0,
-                                       font=('Tahoma', 10, tk.NORMAL),
+                                       font=SMALL_FONT,
                                        selectmode=tk.SINGLE, borderwidth=0, 
                                        highlightthickness=0, bg="white")
         self.schedules_lb.pack(padx=5)
@@ -684,7 +680,7 @@ class DayViewController(tk.Frame):
             self.number_label.config(bg="LightSkyBlue")
             self.schedules_lb.config(bg="LightSkyBlue")
             self.schedule_display.pack()
-            self.cal.set_current_clicked_day(self)   
+            self.cal.current_clicked_day = self
             
             
     def set_to_unclicked(self):
@@ -1163,7 +1159,7 @@ class EligableViewController(tk.Frame):
         self.eligable_listbox = tk.Listbox(parent, 
                                            width=32, height=8, 
                                            exportselection=0,
-                                           font=('Tahoma', 11, tk.NORMAL),
+                                           font=SMALL_MED_FONT,
                                            bg="white")
         self.eligable_listbox.bind('<<ListboxSelect>>', self.eligable_lb_click)
           
@@ -1550,7 +1546,7 @@ class ScheduleWidget(tk.Frame):
         self.schedule_label = tk.Label(self.schedule_frame, 
                                        width=20, height=1, 
                                        anchor=tk.NW, 
-                                       font=('Tahoma', 11, tk.NORMAL),
+                                       font=SMALL_MED_FONT,
                                        textvariable=self.str_var, 
                                        bg="white")                   
         self.schedule_label.bind('<Enter>', lambda event: self.mouse_enter(event))
@@ -1836,8 +1832,7 @@ class CalendarCalculator(tk.Frame):
         monthly_sales = self.session.query(MonthSales).all()
         monthly_sales = [s for s in monthly_sales if (s.month_and_year.month
                                                       == self.cal.date.month)]
-        
-        average = 1
+        average = 0
         for month_sales in monthly_sales:
             average += month_sales.total_sales
         if len(monthly_sales) != 0:

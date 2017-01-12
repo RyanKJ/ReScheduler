@@ -11,6 +11,7 @@ from orm_models import MonthSales
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+MEDIUM_FONT = ('Tahoma', 12, tk.NORMAL)
 
 class SalesPage:
     """
@@ -39,12 +40,12 @@ class SalesPage:
         
         self.title = tk.Label(self.page_frame, 
                               text="Monthly Revenue Data",
-                              font=('Tahoma', 12, tk.NORMAL))
+                              font=MEDIUM_FONT)
         self.title.pack()
         
         self.sales_lb = tk.Listbox(self.page_frame, 
                                    height=22, width=35, 
-                                   font=('Tahoma', 12, tk.NORMAL))
+                                   font=MEDIUM_FONT)
         self.sales_lb.pack()
         
         self.sales_button_frame = tk.Frame(self.page_frame)
@@ -54,7 +55,7 @@ class SalesPage:
         
         self.month_label = tk.Label(self.sales_add_frame, 
                                     text = "Month: ", 
-                                    font=('Tahoma', 12, tk.NORMAL))
+                                    font=MEDIUM_FONT)
         self.month_label.pack(side=tk.LEFT)
         self.month_var = tk.StringVar(self.sales_add_frame)
         self.month_var.set("January")     
@@ -71,7 +72,7 @@ class SalesPage:
                                
         self.year_label = tk.Label(self.sales_add_frame, 
                                    text = "Year: ", 
-                                   font=('Tahoma', 12, tk.NORMAL))
+                                   font=MEDIUM_FONT)
         self.year_label.pack(side=tk.LEFT)
         self.year_var = tk.StringVar(self.sales_add_frame)
         self.year_var.set(year)
@@ -88,11 +89,11 @@ class SalesPage:
         self.amount_var = tk.IntVar(self.sales_add_frame)
         self.amt_label = tk.Label(self.sales_add_frame, 
                                   text="Sales Amount: ", 
-                                  font=('Tahoma', 12, tk.NORMAL))      
+                                  font=MEDIUM_FONT)      
         self.amt_label.pack(side=tk.LEFT)
        
         self.amt_entry = ttk.Entry(self.sales_add_frame, 
-                                  font=('Tahoma', 12, tk.NORMAL), 
+                                  font=MEDIUM_FONT, 
                                   textvariable=self.amount_var)
         self.amt_entry.pack(side=tk.LEFT)
         

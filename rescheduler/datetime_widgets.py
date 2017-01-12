@@ -40,11 +40,11 @@ class TimeEntry(tk.Frame):
         self.hour_var = tk.StringVar(self)
         self.hour_var.set("9")
         self.hour_cb = ttk.Combobox(self, 
-                                   textvariable=self.hour_var,
-                                   values=("1", "2", "3", "4", "5", "6", 
-                                           "7", "8", "9", "10", "11", "12"),
-                                   width=2,
-                                   state='readonly')
+                                    textvariable=self.hour_var,
+                                    values=("1", "2", "3", "4", "5", "6", 
+                                            "7", "8", "9", "10", "11", "12"),
+                                    width=2,
+                                    state='readonly')
         self.hour_cb.pack(side=tk.LEFT)
         self.min_var = tk.StringVar(self)
         self.min_var.set("00")
