@@ -2,19 +2,19 @@ To Do list:
 
 1) Make export to excel work well: no need for template
 2) Add in warning dialogues
-3) Fix autofill
-4) Fix updating department list displaying when adding a new department
-5) Make schedule.department actually linked to db_department, not just string:
+3) Fix updating department list displaying when adding a new department
+4) Make schedule.department actually linked to db_department, not just string:
     -Department optionmenu's reflect database departments, not pre-determined
      strings.
-6) Add optional arg to TimeEntry for setting default values: kwargs?
-7) Change application icon
-8) Make add_vacation, add_repeat insert new item in sorted order, not at end
-9) Add on more validation for save_employee_info
-10) Add in scrollbars to schedule editor and listboxes on employee page
-11) Get rid of main module, or turn into __init__?
-12) Replace self.parent with __init__ for tk.Frame inheritance for calendar_page
+5) Add optional arg to TimeEntry for setting default values: kwargs?
+6) Change application icon
+7) Make add_vacation, add_repeat insert new item in sorted order, not at end
+8) Add on more validation for save_employee_info
+9) Add in scrollbars to schedule editor and listboxes on employee page
+10) Get rid of main module, or turn into __init__?
+11) Replace self.parent with __init__ for tk.Frame inheritance for calendar_page
     classes
+12) Bug with adding employee with already used ID
 
 
 
