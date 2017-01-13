@@ -159,9 +159,9 @@ class CalendarPage(tk.Frame):
         self.calendar_display.save_calendar_to_excel(version)
         
         
-    def autofill(self):
-        """Call calendar_display to execute autofill method."""
-        self.calendar_display.autofill()
+    def autofill_calendar(self):
+        """Call calendar_display to execute autofill_calendar method."""
+        self.calendar_display.autofill_calendar()
         
                    
                                             
@@ -171,7 +171,7 @@ class CalendarMenu(tk.Frame):
     The calendar menu has several drop down menus to select month, year,
     and department variables which are then used to instantiate a calendar
     with the calendar_display object. The calendar_menu also features a save
-    function into excel and an autofill button that fills any schedule that
+    function into excel and an autofill_calendar button that fills any schedule that
     does not have an employee assigned with the 'most eligable' employee.
     (See get_eligables method in EligableModel for explanation of 'eligability'
     and how employees are sorted by eligability.)
@@ -282,7 +282,7 @@ class CalendarMenu(tk.Frame):
         spacing_frame_2.grid(row=0, column=11, padx=28)
         autofill_button = ttk.Button(calendar_menu_frame, 
                                          text='Autofill Schedules', 
-                                         command=self.autofill)
+                                         command=self.autofill_calendar)
         autofill_button.grid(row=0, column=12)
         
         sep_bottom = ttk.Separator(calendar_menu_frame, orient=tk.HORIZONTAL)
@@ -305,9 +305,9 @@ class CalendarMenu(tk.Frame):
         self.controller.save_calendar_to_excel(version)
         
         
-    def autofill(self):
-        """Call autofill method."""
-        self.controller.autofill()
+    def autofill_calendar(self):
+        """Call autofill_calendar method."""
+        self.controller.autofill_calendar()
         
         
 		
@@ -515,32 +515,46 @@ class CalendarDisplay(tk.Frame):
         dest_filename = tkFileDialog.asksaveasfilename(**file_opt)                                                      
         wb.save(filename = dest_filename)
         
-       
-    def autofill(self):
-        """Fill each unassaigned schedule with most eligable employee
+      
+      
+    def autofill_calendar(self):
+        """Fill all unassaigned schedules with most eligable employee
     
         In chronological order of days in calendar, iterate through all 
         schedules and pick the first available (most eligable according to 
-        algorithm) employee and set as that schedule's assign employee.
+        algorithm) employee and set as that schedule's assign employee via the
+        auto_assign_schedule method.
         """
-   
         for day_vc in self.day_vc_list:
-            for e_vc_id in day_vc.eligable_vc:
-                e_vc = day_vc.eligable_vc[e_vc_id]
+            day_vc.set_to_clicked('<Button-1>')
+            schedule_list = day_vc.day_model.schedules
+            for s in schedule_list:
+                s_widget = day_vc.schedule_widgets[s]
+                day_vc.schedule_widget_click('<Button-1>', s_widget)
+                e_vc = day_vc.eligable_vc[s_widget.pk]
                 e_model = e_vc.e_model
                 # -1 means no employee is assigned to schedule yet
-                if e_model.get_assigned_employee == -1:
-                    e_vc.display_eligables()
-                    eligable_lb = e_vc.eligable_listbox
-                    list_of_names = eligable_lb.get(0, tk.END)
-                    for name in list_of_names:
-                        pattern = r'\(\w\)'
-                        # When there is no warning flag for assignment conflict
-                        if not re.search(pattern, name):
-                            index = list_of_names.index(name)
-                            e_model.assign_employee_schedule(index)
-                            
-                            
+                if e_model.get_assigned_employee() == -1:
+                    self.auto_assign_schedule(e_vc, e_model)
+        
+                
+    def auto_assign_schedule(self, e_vc, e_model):
+        """Given an eligable model, assign most eligable employee to schedule.
+        
+        Args:
+            e_vc: The eligable_viewcontroller instance associated with schedule.
+            e_model: The eligable_model instance associated with schedule.
+        """
+        
+        list_of_names = e_vc.eligable_listbox.get(0, tk.END)
+        for name in list_of_names:
+            pattern = r'\(\w\)'
+            # When there is no warning flag for assignment conflict
+            if not re.search(pattern, name):
+                index = list_of_names.index(name)
+                e_vc.eligable_listbox.selection_set(index)
+                e_vc.eligable_lb_click('<Button-1>')
+                break
                 
 
     def update_costs(self):
